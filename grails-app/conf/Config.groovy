@@ -132,7 +132,8 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 ]
 
 grails.plugin.springsecurity.filterChain.chainMap = [
+	'/api/register': 'JOINED_FILTERS,-restTokenValidationFilter,-restExceptionTranslationFilter', 
+	'/api/verify': 'JOINED_FILTERS,-restTokenValidationFilter,-restExceptionTranslationFilter',  
 	'/api/**': 'JOINED_FILTERS,-exceptionTranslationFilter,-authenticationProcessingFilter,-securityContextPersistenceFilter,-rememberMeAuthenticationFilter',  // Stateless chain
 	'/**': 'JOINED_FILTERS,-restTokenValidationFilter,-restExceptionTranslationFilter'                                                                          // Traditional chain
 ]
-
