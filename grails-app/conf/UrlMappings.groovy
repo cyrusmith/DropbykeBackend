@@ -8,9 +8,8 @@ class UrlMappings {
             }
         }
 		
-		"/api/register"(controller:"users", action: "registerPhone", method:"POST")
-		
-		//"/api/verify"(controller:"users", action: "verifyCode", method:"POST")
+		"/api/register"(controller:"users", action: "registerPhone", method:"POST")		
+		"/api/verify"(controller:"users", action: "verifyCode", method:"POST")
 		
         "/"(view:"/index")
         "500"(view:'/error')

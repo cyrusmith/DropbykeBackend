@@ -79,11 +79,9 @@ class PhoneService {
 		}
 	}
 
-	def verifySMSCode(String code) {
+	def verifySMSCode(String code, String verificationId) {
 
 		log.debug "verifySMSCode to " + code
-
-		def verificationId = "518c4db62602b8fe02000061";
 
 		try {
 

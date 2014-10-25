@@ -5,35 +5,33 @@ import grails.transaction.Transactional
 @Transactional
 class LoginService {
 
-	public User register(String email, String username, String password) {
+	public User register(String aPhone) {
 
-		if(this.isUserExists(email, username)) {
-			return null
+		User user = this.getExistingUser(aPhone)
+
+		if(user == null) {
+			user = new User(username: aPhone, password: aPhone, phone: aPhone)
+			user.save()
+			Role role = getRole("ROLE_USER")
+			UserRole.create(user, role)
 		}
 
-		User user = new User(username : username, email: email, password: password);
-		user.save();
-		Role role = getRole("ROLE_USER")
-		UserRole.create(user, role)
 		user
 	}
 
-	public boolean isUserExists(String aEmail, String aUsername) {
-		List<User> users = User.where {
-			username == aUsername ||
-					email == aEmail
-		}.findAll()
+	public User getExistingUser(String aPhone) {
+		List<User> users = User.where { username == aPhone }.findAll()
 		if(users!=null && !users.isEmpty()) {
-			return true
+			return users[0]
 		}
-		return false
+		return null
 	}
 
-	private Role getRole(String authority) {
-		Role role = Role.where { authority:authority }.get()
+	private Role getRole(String aAuthority) {
+		Role role = Role.where { authority:aAuthority }.get()
 
 		if(!role) {
-			role = new Role(authority: authority)
+			role = new Role(authority: aAuthority)
 			role.save();
 		}
 		role

@@ -6,15 +6,15 @@ class User {
 
 	String username
 	String password
-	String email
-	String facebookId
-	String phone
-	String cardNumber
-	String cardName
-	String cardExpire
-	String cardCVS
-	boolean phoneVerified
-	boolean cardVerified
+	String email = ""
+	String facebookId = ""
+	String phone = ""
+	String cardNumber = ""
+	String cardName = ""
+	String cardExpire = ""
+	String cardCVS = ""
+	boolean phoneVerified = false
+	boolean cardVerified = false
 	
 	boolean enabled = true
 	boolean accountExpired
