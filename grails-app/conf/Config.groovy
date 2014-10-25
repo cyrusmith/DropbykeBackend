@@ -145,6 +145,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = [
 	'/index.gsp':                     ['permitAll'],
 	'/**/js/**':                      ['permitAll'],
 	'/**/css/**':                     ['permitAll'],
+	'/**/assets/**':                  ['permitAll'],
 	'/**/images/**':                  ['permitAll'],
 	'/**/favicon.ico':                ['permitAll']]
 
@@ -157,3 +158,5 @@ grails.plugin.springsecurity.filterChain.chainMap = [
 
 grails.plugin.springsecurity.rest.token.storage.useGorm = true
 grails.plugin.springsecurity.rest.token.storage.gorm.tokenDomainClassName = 'com.dropbyke.AuthenticationToken'
+
+grails.assets.excludes =  ["bower_components/**/**", "bower.json"]

@@ -13,6 +13,7 @@ class User {
 	String cardName = ""
 	String cardExpire = ""
 	String cardCVS = ""
+	boolean isOnline = false
 	boolean phoneVerified = false
 	boolean cardVerified = false
 	

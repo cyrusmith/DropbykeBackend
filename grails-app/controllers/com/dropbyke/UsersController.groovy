@@ -14,9 +14,6 @@ class UsersController {
 	def phoneService
 	def loginService
 
-	TokenGenerator tokenGenerator
-	TokenStorageService tokenStorageService
-
 	static allowedMethods = [registerPhone:'POST']
 
 	@Secured(['permitAll'])
@@ -69,18 +66,8 @@ class UsersController {
 
 		User user = loginService.register(resp.getString("tel"))
 		
-		String tokenValue = tokenGenerator.generateToken()				
+		String tokenValue = loginService.login(user.phone);
 		
-		def principal = [username: 'someuser']
-		try {
-			tokenStorageService.storeToken(tokenValue, principal)
-		}
-		catch(Exception err) {
-			return	render (status: 500, contentType:"application/json") {
-				["error": err.message]
-			}
-		}
-
 		render (status: 200, contentType:"application/json") { ["access_token": tokenValue] }
 	}
 
