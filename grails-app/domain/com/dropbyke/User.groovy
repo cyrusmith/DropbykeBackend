@@ -12,7 +12,7 @@ class User {
 	String cardNumber = ""
 	String cardName = ""
 	String cardExpire = ""
-	String cardCVS = ""
+	String cardCVC = ""
 	String stripeCustomerId = ""
 
 	boolean isOnline = false
