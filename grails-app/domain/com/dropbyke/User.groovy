@@ -13,10 +13,11 @@ class User {
 	String cardName = ""
 	String cardExpire = ""
 	String cardCVS = ""
+	String stripeCustomerId = ""
+
 	boolean isOnline = false
 	boolean phoneVerified = false
-	boolean cardVerified = false
-	
+
 	boolean enabled = true
 	boolean accountExpired
 	boolean accountLocked
@@ -29,9 +30,7 @@ class User {
 		password blank: false
 	}
 
-	static mapping = {
-		password column: '`password`'
-	}
+	static mapping = { password column: '`password`' }
 
 	Set<Role> getAuthorities() {
 		UserRole.findAllByUser(this).collect { it.role }

@@ -11,6 +11,8 @@ class UrlMappings {
 		"/api/register"(controller:"users", action: "registerPhone", method:"POST")		
 		"/api/verify"(controller:"users", action: "verifyCode", method:"POST")
 		
+		"/api/addcard"(controller:"card", action: "addCard", method:"POST")
+		
 		"/admin/$controller/$action?/$id?(.$format)?"{
             constraints {
                 // apply constraints here
