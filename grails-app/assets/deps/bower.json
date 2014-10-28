@@ -2,6 +2,7 @@
   "name": "Dropbike",
   "version": "0.1",
   "dependencies": {
-    "bootstrap": "latest"
+    "bootstrap": "latest",
+    "backbone": "latest"
   }
 }

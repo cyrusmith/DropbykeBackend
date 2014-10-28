@@ -5,12 +5,14 @@ class Bike {
 	static hasMany = [rides: Ride]
 	
 	String title
-	BigDecimal lat
-	BigDecimal lon
+	double lat
+	double lon
 	
-	boolean riding
+	boolean riding = false
 	
-	byte[] photo	
+	byte[] photo
+	
+	String photoType = ""	
 	
 	boolean active = true
 	

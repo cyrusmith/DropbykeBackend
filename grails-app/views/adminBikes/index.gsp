@@ -6,44 +6,39 @@
 <title>Bikes</title>
 </head>
 <body>
-	<div class="container">
 
-		<h2>Bikes</h2>
-		<div class="row">
+	<h2>
+		Bikes <a type="button" class="btn btn-primary"
+			href="<g:createLink action="add"/>"> <span
+			class="glyphicon glyphicon-plus"></span> Add bike
+		</a>
+	</h2>
 
-			<a type="button" class="btn btn-primary" href="<g:createLink action="add"/>">
-				<span class="glyphicon glyphicon-plus"></span> Add bike
-			</a>
-		</div>
+	<table class="table users-table table-striped">
+		<thead>
+			<tr>
+				<g:sortableColumn property="title" title="Title" />
+				<g:sortableColumn property="riding" title="Status" />
+				<th>Location</th>
+			</tr>
 
-
-
-		<table class="table users-table table-striped">
-			<thead>
-				<tr>
-					<th>Title</th>
-					<th>Status</th>
-					<th>Location</th>
-				</tr>
-
-			</thead>
-			<g:each in="${bikes}" var="bike">
-				<tr>
-					<td>
+		</thead>
+		<g:each in="${bikes}" var="bike">
+			<tr>
+				<td><a href="<g:createLink action="edit" id="${bike.id}"/>">
 						${bike.title}
-					</td>
-					<td>
-						${bike.riding}
-					</td>
-					<td>
-						${bike.lat} | ${bike.lon}
-					</td>
-				</tr>
-			</g:each>
-		</table>
-		<g:paginate max="2" next="Forward" prev="Back" maxsteps="0"
-			controller="adminBikes" action="index" total="${bikesCount}" />
+				</a></td>
+				<td>
+					${bike.riding}
+				</td>
+				<td>
+					${bike.lat} | ${bike.lon}
+				</td>
+			</tr>
+		</g:each>
+	</table>
 
-	</div>
+	<g:paginate total="${bikesCount}" />
+
 </body>
 </html>

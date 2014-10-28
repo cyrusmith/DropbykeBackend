@@ -7,6 +7,8 @@ class UrlMappings {
 		
 		"/api/addcard"(controller:"card", action: "addCard", method:"POST")
 		
+		"/bikes/image/$id"(controller: "bikes", action: "avatarImage", method: "GET")
+		
 		"/admin/adminBikes/add"(controller:"adminBikes", action: "add", method:"GET")
 		
 		"/admin/$controller/$action?/$id?(.$format)?"{
