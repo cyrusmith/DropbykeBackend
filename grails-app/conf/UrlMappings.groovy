@@ -9,6 +9,8 @@ class UrlMappings {
 		
 		"/bikes/image/$id"(controller: "bikes", action: "avatarImage", method: "GET")
 		
+		"/bikes/"(controller: "bikes", action: "bikesInArea", method: "GET")
+		
 		"/admin/adminBikes/add"(controller:"adminBikes", action: "add", method:"GET")
 		
 		"/admin/$controller/$action?/$id?(.$format)?"{
