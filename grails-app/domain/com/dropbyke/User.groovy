@@ -4,6 +4,8 @@ class User {
 
 	transient springSecurityService
 
+	static hasMany = [rides: Ride]
+	
 	String username
 	String password
 	String email = ""
