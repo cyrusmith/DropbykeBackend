@@ -1,0 +1,2 @@
+REM rsync -avzr --chmod=a+rwx,g+rwx,o+rwx target/DropbikeBackend-0.1 "../../../../../Program Files/Apache Software Foundation/Tomcat 7.0/webapps/"
+rsync -avzr --perms target/DropbikeBackend-0.1 "../../../../../Program Files/Apache Software Foundation/Tomcat 7.0/webapps/"

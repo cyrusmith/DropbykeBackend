@@ -29,16 +29,26 @@ class BikesController {
 
 		NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US)
 
-		double lat1 = params["lat1"]?formatter.parse(params["lat1"]):0.0
-		double lat2 = params["lat2"]?formatter.parse(params["lat2"]):0.0
-		double lng1 = params["lng1"]?formatter.parse(params["lng1"]):0.0
-		double lng2 = params["lng2"]?formatter.parse(params["lng2"]):0.0
+		double lat1 = 0.0
+		double lat2 = 0.0
+		double lng1 = 0.0
+		double lng2 = 0.0
+		
+		try {
+			lat1 = params["lat1"]?formatter.parse(params["lat1"]):0.0
+			lat2 = params["lat2"]?formatter.parse(params["lat2"]):0.0
+			lng1 = params["lng1"]?formatter.parse(params["lng1"]):0.0
+			lng2 = params["lng2"]?formatter.parse(params["lng2"]):0.0
+		}
+		catch(Exception e) {
+			log.error(e)
+		}
 
 		def bikes
 
 		def c = Bike.createCriteria()
 
-		if((Math.abs(lng1 - lng2) > 0.0000001) && Math.abs(lat1 - lat2) > 0.0000001) {
+		if((Math.abs(lng1 - lng2) > 0.000000001) && Math.abs(lat1 - lat2) > 0.000000001) {
 			bikes = c.list(sort:"title", order: "asc") {
 				maxResults 20
 				gt('lat', lat1)

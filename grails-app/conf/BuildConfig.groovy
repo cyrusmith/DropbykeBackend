@@ -84,3 +84,6 @@ grails.project.dependency.resolution = {
 		
     }
 }
+
+grails.project.war.exploded.dir = "target/${appName}-${appVersion}"
+grails.war.exploded=true

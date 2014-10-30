@@ -7,8 +7,7 @@ import grails.plugin.springsecurity.annotation.Secured;
 @Secured(["permitAll"])
 class AdminUsersController {
 
-	def index() {
-		
+	def index() {		
 		[users: User.list(params), usersCount: User.count()]
 	}
 }
