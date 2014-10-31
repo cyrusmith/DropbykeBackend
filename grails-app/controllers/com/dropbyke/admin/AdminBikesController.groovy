@@ -35,7 +35,8 @@ class AdminBikesController {
 				hasPhoto:bike.photo,
 				title:bike.title,
 				lat:bike.lat,
-				lon:bike.lon
+				lon:bike.lon,
+				sku:bike.sku
 			])
 			return
 		}
@@ -52,7 +53,8 @@ class AdminBikesController {
 					hasPhoto:bike.photo,
 					title:bike.title,
 					lat:bike.lat,
-					lon:bike.lon
+					lon:bike.lon,
+					sku:bike.sku
 				])
 				return
 			}
@@ -76,6 +78,18 @@ class AdminBikesController {
 		bike.lat = params.lat
 		bike.lon = params.lon
 
+		if(!params.sku) {
+			flash.error = "SKU not set"
+			render(view:'add', model: [
+				title:bike.title,
+				sku:bike.sku,
+				lat:bike.lat,
+				lon:bike.lon
+			])
+			return
+		}
+		bike.sku = params.sku
+		
 		bike.save()
 
 		flash.message = "Bike " + params.title + " successfully saved"
@@ -102,16 +116,29 @@ class AdminBikesController {
 			params.lat = 0.0
 			params.lon = 0.0;
 		}
+		
+		if(!params.sku) {
+			flash.error = "SKU not set"
+			render(view:'add', model: [
+				title:bike.title,
+				sku:bike.sku,
+				lat:bike.lat,
+				lon:bike.lon
+			])
+			return
+		}
 
 		Bike bike = new Bike(title: params.title)
 		bike.lat = params.lat
 		bike.lon = params.lon
+		bike.sku = params.sku
 
 		if(photo.bytes) {
 			if (!okcontents.contains(photo.getContentType())) {
 				flash.error = "Photo must be one of: ${okcontents}"
 				render(view:'add', model: [
 					title:bike.title,
+					sku:bike.sku,
 					lat:bike.lat,
 					lon:bike.lon
 				])
@@ -122,9 +149,20 @@ class AdminBikesController {
 			bike.photoType = photo.contentType
 		}
 
-		bike.save()
-
-		flash.message = "Bike " + params.title + " successfully added"
-		redirect(action: "index")
+		if(bike.save()) {
+			flash.message = "Bike " + params.title + " successfully added"
+			redirect(action: "index")
+		}
+		else {
+			flash.error = "Failed to save bike"
+			render(view:'add', model: [
+				title:bike.title,
+				sku:bike.sku,
+				lat:bike.lat,
+				lon:bike.lon
+			])
+		}
+		
+		
 	}
 }

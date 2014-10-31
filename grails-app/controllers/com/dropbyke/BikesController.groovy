@@ -24,7 +24,7 @@ class BikesController {
 		out.close()
 	}
 
-	@Secured(["permitAll"])
+	@Secured(['ROLE_USER'])
 	def bikesInArea() {
 
 		NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US)
@@ -33,7 +33,7 @@ class BikesController {
 		double lat2 = 0.0
 		double lng1 = 0.0
 		double lng2 = 0.0
-		
+
 		try {
 			lat1 = params["lat1"]?formatter.parse(params["lat1"]):0.0
 			lat2 = params["lat2"]?formatter.parse(params["lat2"]):0.0
@@ -59,6 +59,7 @@ class BikesController {
 				projections {
 					property('id')
 					property('title')
+					property('sku')
 					property('lat')
 					property('lon')
 				}
@@ -71,6 +72,7 @@ class BikesController {
 				projections {
 					property('id')
 					property('title')
+					property('sku')
 					property('lat')
 					property('lon')
 				}
@@ -79,9 +81,35 @@ class BikesController {
 
 		render(status: 200, contentType: "application/json") {
 			["bikes": bikes?bikes.collect {
-					[id: it[0], title: it[1], lat: it[2], lng: it[3]]
+					[id: it[0], title: it[1], sku: it[2], lat: it[3], lng: it[4]]
 				}:[]]
 		}
+	}
+
+	@Secured(['ROLE_USER'])
+	def bike() {
+		System.out.println "params.id=" + params.id
+		if(!params.id) {
+			return render(status: 404, contentType:"application/json") { ["error": "ID not set"] }
+		}
+
+		def c = Bike.createCriteria()
+		def bike = c.get {
+			eq('id', params.id)
+			projections {
+				property('id')
+				property('title')
+				property('sku')
+				property('lat')
+				property('lon')
+			}
+		}
+
+		if(!bike) {
+			return render(status: 404, contentType:"application/json") { ["error": "Not found"] }
+		}
+
+		return render(status: 200, contentType:"application/json") { ["bike": bike] }
 	}
 
 	/**

@@ -23,6 +23,12 @@
 			<g:textField name="title" class="form-control" value="${title}"
 				id="title" placeholder="Enter bike model or/and name" />
 		</div>
+		
+		<div class="form-group">
+			<label for="sku">SKU</label>
+			<g:textField name="sku" class="form-control" value="${sku}"
+				id="sku" placeholder="Enter bike sku" />
+		</div>
 
 		<div class="form-group">
 			<fieldset>

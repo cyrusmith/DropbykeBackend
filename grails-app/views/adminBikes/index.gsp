@@ -18,6 +18,7 @@
 		<thead>
 			<tr>
 				<g:sortableColumn property="title" title="Title" />
+				<g:sortableColumn property="sku" title="SKU" />
 				<g:sortableColumn property="riding" title="Status" />
 				<th>Location</th>
 			</tr>
@@ -30,6 +31,9 @@
 				</a></td>
 				<td>
 					${bike.riding}
+				</td>
+				<td>
+					${bike.sku}
 				</td>
 				<td>
 					${bike.lat} | ${bike.lon}

@@ -4,12 +4,12 @@ class UrlMappings {
 		
 		"/api/register"(controller:"users", action: "registerPhone", method:"POST")		
 		"/api/verify"(controller:"users", action: "verifyCode", method:"POST")
-		
 		"/api/addcard"(controller:"card", action: "addCard", method:"POST")
-		
+
+		"/api/bikes/"(controller: "bikes", action: "bikesInArea", method: "GET")
+		"/api/bikes/$id"(controller: "bikes", action: "bike", method: "GET")
+				
 		"/bikes/image/$id"(controller: "bikes", action: "avatarImage", method: "GET")
-		
-		"/bikes/"(controller: "bikes", action: "bikesInArea", method: "GET")
 		
 		"/admin/adminBikes/add"(controller:"adminBikes", action: "add", method:"GET")
 		
