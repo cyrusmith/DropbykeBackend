@@ -10,7 +10,7 @@ class LoginService {
 
 	TokenGenerator tokenGenerator
 	TokenStorageService tokenStorageService
-	
+
 	public User register(String aPhone) {
 
 		User user = this.getExistingUser(aPhone)
@@ -21,14 +21,14 @@ class LoginService {
 			Role role = getRole("ROLE_USER")
 			UserRole.create(user, role)
 		}
-		
+
 		user
 	}
-	
+
 	public String login(String aPhone) {
-		
+
 		String tokenValue = tokenGenerator.generateToken()
-		
+
 		def principal = [username: aPhone]
 		try {
 			tokenStorageService.storeToken(tokenValue, principal)
@@ -36,10 +36,26 @@ class LoginService {
 		catch(Exception err) {
 			return false
 		}
-		
-		return tokenValue
 
-	} 	
+		return tokenValue
+	}
+
+	public boolean logout(String aPhone) {
+
+		def tokens = AuthenticationToken.where { username : aPhone }
+
+		if(!tokens) return false
+
+		try {
+			for(def token in tokens) {
+				token.delete()
+			}
+			return true
+		}
+		catch(e) {
+			return false
+		}
+	}
 
 	public User getExistingUser(String aPhone) {
 		List<User> users = User.where { username == aPhone }.findAll()

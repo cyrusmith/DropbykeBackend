@@ -6,8 +6,9 @@ class User {
 
 	static hasMany = [rides: Ride]
 	
-	String username
+	String username	
 	String password
+	String name = ""
 	String email = ""
 	String facebookId = ""
 	String phone = ""

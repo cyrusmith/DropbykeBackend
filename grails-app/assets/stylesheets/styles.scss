@@ -1,17 +1,22 @@
-.users-table {	
-	.user-status-online {
-	}
+.users-table { .user-status-online {
+	
 }
 
-.message {	
+}
+
+.menu {
+	
+	padding: 1em 0
+	
+}
+.message {
 	margin: 1em;
 	border-radius: .4em;
 	padding: 1em;
 }
 
-#mapModal 
-{
-	.modal-body {
-		height: 400px;
+.modal { 
+	.modal-body { 
+		height:400px;
 	}
 }

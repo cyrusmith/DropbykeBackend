@@ -3,6 +3,7 @@
   "version": "0.1",
   "dependencies": {
     "bootstrap": "latest",
-    "backbone": "latest"
+    "backbone": "latest",
+    "datetimepicker": "latest"
   }
 }

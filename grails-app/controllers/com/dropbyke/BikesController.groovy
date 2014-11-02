@@ -87,15 +87,17 @@ class BikesController {
 	}
 
 	@Secured(['ROLE_USER'])
-	def bike() {
+	def view() {
 		System.out.println "params.id=" + params.id
 		if(!params.id) {
 			return render(status: 404, contentType:"application/json") { ["error": "ID not set"] }
 		}
 
+		def id = params.id.toLong()
+
 		def c = Bike.createCriteria()
 		def bike = c.get {
-			eq('id', params.id)
+			eq('id', id)
 			projections {
 				property('id')
 				property('title')
@@ -109,7 +111,11 @@ class BikesController {
 			return render(status: 404, contentType:"application/json") { ["error": "Not found"] }
 		}
 
-		return render(status: 200, contentType:"application/json") { ["bike": bike] }
+		return render(status: 200, contentType:"application/json") {
+			["bike": [
+					id: bike[0], title: bike[1], sku: bike[2], lat: bike[3], lng: bike[4]
+				]]
+		}
 	}
 
 	/**

@@ -9,13 +9,7 @@
 //= require bower_components/bootstrap/dist/js/bootstrap.min.js
 //= require bower_components/underscore/underscore.js
 //= require bower_components/backbone/backbone.js
+//= require bower_components/datetimepicker/jquery.datetimepicker.js
 
-window.dropbyke = {
-	ui : {},
-	config: {
-		MAP_API_KEY: "AIzaSyAzMonYKYPE18hIqNSyRF422iCv4WdU8e4"
-	}
-};
-
-//= require_self
-//= require_tree bikes
+//= require ./init.js
+//= require_tree location
