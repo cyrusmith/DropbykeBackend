@@ -2,88 +2,90 @@ package com.dropbyke
 
 import java.text.NumberFormat;
 
+import javax.transaction.Transaction;
+
 import org.codehaus.groovy.grails.web.json.JSONObject;
 import org.hibernate.criterion.CriteriaSpecification;
 
 import grails.plugin.springsecurity.annotation.Secured;
-
+import groovy.sql.Sql
+import groovy.sql.GroovyRowResult
 
 class BikesController {
 
-	@Secured(["permitAll"])
-	def avatarImage() {
-		def bike = Bike.get(params.id)
-		if (!bike || !bike.photo) {
-			response.sendError(404)
-			return
-		}
-		response.contentType = bike.photoType
-		response.contentLength = bike.photo.size()
-		OutputStream out = response.outputStream
-		out.write(bike.photo)
-		out.close()
-	}
-
-	@Secured(['ROLE_USER'])
+	def dataSource
+	
+	@Secured(['permitAll'])
 	def bikesInArea() {
-
-		NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US)
 
 		double lat1 = 0.0
 		double lat2 = 0.0
 		double lng1 = 0.0
 		double lng2 = 0.0
 
-		try {
-			lat1 = params["lat1"]?formatter.parse(params["lat1"]):0.0
-			lat2 = params["lat2"]?formatter.parse(params["lat2"]):0.0
-			lng1 = params["lng1"]?formatter.parse(params["lng1"]):0.0
-			lng2 = params["lng2"]?formatter.parse(params["lng2"]):0.0
+		lat1 = ParseUtils.strToNumber(params["lat1"], 0.0)
+		lat2 = ParseUtils.strToNumber(params["lat2"], 0.0)
+		lng1 = ParseUtils.strToNumber(params["lng1"], 0.0)
+		lng2 = ParseUtils.strToNumber(params["lng2"], 0.0)
+
+		List queryResults
+
+		if((Math.abs(lng1 - lng2) > 0.0000001) && Math.abs(lat1 - lat2) > 0.0000001) {
+			
 		}
-		catch(Exception e) {
-			log.error(e)
+		else {
+			
+			Sql sql = new Sql(dataSource)
+			
+			String query = "select b.id, b.title, b.sku, r.stop_lat, r.stop_lng from bike as b left join ride as r on b.id=r.bike_id where 0 = (select count(id) from ride as rd where rd.bike_id = b.id and rd.stop_time = 0) order by b.id, r.stop_time desc"
+			 
+			final results = sql.rows(query)			
+			
+			queryResults = results 
+			
+			//Ride.executeQuery(query, [max: 20])
 		}
 
-		def bikes
+		System.out.println "queryResults=" + queryResults
+		return
 
-		def c = Bike.createCriteria()
+		def rides
+
+		def c = Ride.createCriteria()
 
 		if((Math.abs(lng1 - lng2) > 0.000000001) && Math.abs(lat1 - lat2) > 0.000000001) {
-			bikes = c.list(sort:"title", order: "asc") {
+			rides = c.list(sort:"stopTime", order: "desc") {
 				maxResults 20
-				gt('lat', lat1)
-				lt('lat', lat2)
-				gt('lon',lng1)
-				lt('lon', lng2)
-				eq('riding', false)
-				projections {
-					property('id')
-					property('title')
-					property('sku')
-					property('lat')
-					property('lon')
-				}
+				gt('stopTime', 0L)
+				gt('stopLat', lat1)
+				lt('stopLat', lat2)
+				gt('stopLon',lng1)
+				lt('stopLon', lng2)
+				projections { distinct("bike.id") }
 			}
 		}
 		else {
-			bikes = c.list(max: 20) {
+			rides = c.list(max: 20) {
 				maxResults 20
-				eq('riding', false)
-				projections {
-					property('id')
-					property('title')
-					property('sku')
-					property('lat')
-					property('lon')
-				}
+				gt('stopTime', 0L)
+				projections { distinct("bike.id") }
 			}
 		}
 
-		render(status: 200, contentType: "application/json") {
-			["bikes": bikes?bikes.collect {
-					[id: it[0], title: it[1], sku: it[2], lat: it[3], lng: it[4]]
-				}:[]]
+		def bikesCr = Bike.createCriteria()
+
+		def bikes = bikesCr.list() {
+			'in' ('id', rides)
+			projections {
+				property("id")
+				property("title")
+				property("sku")
+			}
 		}
+
+		System.out.println "rides=" + rides
+
+		render(status: 200, contentType: "application/json") { ["bikes": bikes] }
 	}
 
 	@Secured(['ROLE_USER'])

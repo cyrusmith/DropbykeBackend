@@ -22,6 +22,7 @@
 				<g:sortableColumn property="user" title="User" />
 				<g:sortableColumn property="startTime" title="Start time" />
 				<g:sortableColumn property="stopTime" title="Stop time" />
+				<th>Stop location</th>
 				<th>Lock password</th>
 			</tr>
 
@@ -50,6 +51,9 @@
 				</td>
 				<td>
 					${ride.stopTime}
+				</td>
+				<td>
+					${ride.stopLat}|${ride.stopLng}
 				</td>
 				<td>
 					${ride.lockPassword}

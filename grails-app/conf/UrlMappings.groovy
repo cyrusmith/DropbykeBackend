@@ -7,10 +7,9 @@ class UrlMappings {
 		"/api/addcard"(controller:"card", action: "addCard", method:"POST")
 
 		"/api/bikes/"(controller: "bikes", action: "bikesInArea", method: "GET")
+		"/bikes/"(controller: "bikes", action: "bikesInArea", method: "GET")//TODO remove this
 		"/api/bikes/$id"(controller: "bikes", action: "view", method: "GET")
 				
-		"/bikes/image/$id"(controller: "bikes", action: "avatarImage", method: "GET")
-		
 		"/admin/$controller/$action?/$id?(.$format)?"{
             constraints {
                 // apply constraints here
