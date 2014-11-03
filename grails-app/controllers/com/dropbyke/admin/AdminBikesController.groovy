@@ -9,6 +9,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import com.dropbyke.Bike;
 import com.dropbyke.ImageUtils;
+import com.dropbyke.ParseUtils;
 
 import grails.plugin.springsecurity.annotation.Secured;
 import grails.transaction.Transactional;
@@ -32,7 +33,12 @@ class AdminBikesController {
 				return render(view:'edit', model: [
 					id:bike.id,
 					title:bike.title,
-					sku:bike.sku
+					sku:bike.sku,
+					address:bike.address,
+					lat:bike.lat,
+					lng:bike.lng,
+					priceRate:bike.priceRate,
+					locked:bike.locked
 				])
 			}
 			return render(view:'edit')
@@ -53,7 +59,14 @@ class AdminBikesController {
 				sku:params.sku
 			])
 		}
+
 		bike.title = params.title
+		bike.sku = params.sku
+		bike.priceRate = ParseUtils.strToInt(params.priceRate)
+		bike.locked = ParseUtils.strToInt(params.locked)
+		bike.lat = ParseUtils.strToNumber(params.lat)
+		bike.lng = ParseUtils.strToNumber(params.lng)
+		bike.address = params.address
 		bike.sku = params.sku
 
 		System.out.println params

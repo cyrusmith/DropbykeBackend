@@ -20,6 +20,7 @@
 				<g:sortableColumn property="title" title="Title" />
 				<g:sortableColumn property="sku" title="SKU" />
 				<g:sortableColumn property="locked" title="Status" />
+				<th>Location</th>
 			</tr>
 
 		</thead>
@@ -40,10 +41,12 @@
 
 
 					</g:if> <g:else>
-					Free <g:link controller="adminRides" action="add"
-							id="${bike.id}" class="button button-success">Start ride</g:link>
+					Free <g:link controller="adminRides" action="add" id="${bike.id}"
+							class="button button-success">Start ride</g:link>
 					</g:else></td>
-
+				<td>
+					${bike.lat} | ${bike.lng}
+				</td>
 			</tr>
 		</g:each>
 	</table>

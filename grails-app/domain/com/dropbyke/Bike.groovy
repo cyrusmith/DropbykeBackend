@@ -7,8 +7,12 @@ class Bike {
 	String sku
 	String title
 	int rating
-	int priceRate //cents per second
+	int priceRate //cents per hour
 
+	double lat = 0.0
+	double lng = 0.0
+	String address = 0.0
+	
 	boolean locked = false
 
 	boolean active = true

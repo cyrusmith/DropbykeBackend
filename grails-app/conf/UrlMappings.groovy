@@ -7,6 +7,7 @@ class UrlMappings {
 		"/api/addcard"(controller:"card", action: "addCard", method:"POST")
 
 		"/api/bikes/"(controller: "bikes", action: "bikesInArea", method: "GET")
+		"/api/bikes/startusage"(controller: "bikes", action: "startUsage", method: "POST")		
 		"/api/bikes/$id"(controller: "bikes", action: "view", method: "GET")
 		
 		"/api/profile/photo"(controller: "users", action: "uploadPhoto", method: "POST")		

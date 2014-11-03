@@ -112,7 +112,7 @@ class UsersController {
 		def photo = request.getFile('photo')
 		System.out.println "uploadPhoto"
 		System.out.println photo
-		if(photo.bytes) {
+		if(photo && photo.bytes) {
 			if (ImageUtils.saveUserPhotoFromMultipart(servletContext, photo, authenticatedUser.id)) {
 				return render (status: 200, contentType:"application/json") {}
 			}

@@ -8,12 +8,15 @@ import org.codehaus.groovy.grails.web.json.JSONObject;
 import org.hibernate.criterion.CriteriaSpecification;
 
 import grails.plugin.springsecurity.annotation.Secured;
+import grails.transaction.Transactional;
 import groovy.sql.Sql
 import groovy.sql.GroovyRowResult
 
 class BikesController {
 
 	def dataSource
+	def bikesService
+	def springSecurityService
 
 	@Secured(['permitAll'])
 	def bikesInArea() {
@@ -28,87 +31,92 @@ class BikesController {
 		lng1 = ParseUtils.strToNumber(params["lng1"], 0.0)
 		lng2 = ParseUtils.strToNumber(params["lng2"], 0.0)
 
-		List queryResults
+		def bikes
+		def bc = Bike.createCriteria()
 
 		if((Math.abs(lng1 - lng2) > 0.0000001) && Math.abs(lat1 - lat2) > 0.0000001) {
-			String query = $/
-			select b.id, b.title, b.sku, r.stop_lat, r.stop_lng
-			from bike as b
-			left join ride as r on b.id=r.bike_id
-			where 0 = (select count(id) from ride as rd where rd.bike_id = b.id and rd.stop_time = 0) and
-			stop_lat > :lat1 and stop_lat < :lat2 and
-			stop_lng > :lng1 and stop_lng < :lng2
-			order by b.id, r.stop_time desc
-			/$
 
-			Sql sql = new Sql(dataSource)
-
-			final results = sql.rows(query, lat1: lat1, lat2:lat2, lng1:lng1, lng2:lng2)
-
-			queryResults = results
+			bikes = bc.list {
+				maxResults(20)
+				gt('lat', lat1)
+				lt('lat', lat2)
+				gt('lng', lng1)
+				lt('lng', lng2)
+				eq('locked', false)
+			}
 		}
 		else {
 
-			String query = $/
-			select b.id, b.title, b.sku, r.stop_lat, r.stop_lng
-			from bike as b
-			left join ride as r on b.id=r.bike_id
-			where 0 = (select count(id) from ride as rd where rd.bike_id = b.id and rd.stop_time = 0)
-			order by b.id, r.stop_time desc
-			/$
-
-			Sql sql = new Sql(dataSource)
-
-			final results = sql.rows(query)
-
-			queryResults = results
-		}
-
-		List bikes = []
-		
-		long lastId = 0
-		for(def res in queryResults) {
-			if(res.id == lastId) {
-				continue
+			bikes = bc.list {
+				maxResults(20)
+				eq('locked', false)
 			}
-			lastId = res.id
-			bikes.add(res)
 		}
-		
-		System.out.println "bikes=" + bikes
 
 		render(status: 200, contentType: "application/json") { ["bikes": bikes] }
 	}
 
 	@Secured(['ROLE_USER'])
+	@Transactional
 	def view() {
-		System.out.println "params.id=" + params.id
+
 		if(!params.id) {
 			return render(status: 404, contentType:"application/json") { ["error": "ID not set"] }
 		}
 
 		def id = params.id.toLong()
 
-		def c = Bike.createCriteria()
-		def bike = c.get {
-			eq('id', id)
-			projections {
-				property('id')
-				property('title')
-				property('sku')
-				property('lat')
-				property('lon')
-			}
-		}
+		Bike bike = Bike.get(id)
 
 		if(!bike) {
 			return render(status: 404, contentType:"application/json") { ["error": "Not found"] }
 		}
 
+		if(bike.locked) {
+			return render(status: 400, contentType:"application/json") { ["error": "Bike is locked"] }
+		}
+
+		def rc = Ride.createCriteria()
+		def rides = rc.list {
+			maxResults(1)
+			gt('stopTime', 0L)
+			order("stopTime", "desc")
+		}
+
+		def ride = null;
+		if(rides && rides.size()) {
+			ride = rides.get(0)
+		}
+		System.out.println "ride="+ride + ", bike=" + bike
 		return render(status: 200, contentType:"application/json") {
-			["bike": [
-					id: bike[0], title: bike[1], sku: bike[2], lat: bike[3], lng: bike[4]
-				]]
+			["bike": bike, "ride": ride]
+		}
+	}
+
+	@Secured(['ROLE_USER'])
+
+	def startUsage() {
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+
+		JSONObject data = request.JSON
+
+		def bikeId = data.has("bikeId")?data.getLong("bikeId"):0
+		if(!bikeId) {
+			return render(status: 404, contentType:"application/json") { ["error": "Id not set"] }
+		}
+
+		Bike bike = Bike.get(bikeId)
+
+		if(!bike) {
+			return render(status: 404, contentType:"application/json") { ["error": "Bike not found"] }
+		}
+
+		try {
+			bikesService.startUsage(authenticatedUser.id, bikeId)
+			return render(status: 500, contentType:"application/json") { ["error": e.message] }
+		}
+		catch(e) {
+			return render(status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}
 
