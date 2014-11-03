@@ -103,6 +103,22 @@ class AdminRidesController {
 		return this.edit()
 	}
 
+	@Transactional
+	def delete() {
+		if(!params.id) return sendError(code: 400)
+		
+		Ride ride = Ride.get(params.id)
+		
+		if(ride.delete()) {
+			flash.error = "Failed to delete ride"
+		}
+		else {
+			flash.message = "Ride deleted"
+		}
+		redirect(action:"index")
+		
+	}
+	
 	private int strToInt(String val, int dflt = 0) {
 
 		try {

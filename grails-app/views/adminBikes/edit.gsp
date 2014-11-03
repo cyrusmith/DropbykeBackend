@@ -31,6 +31,18 @@
 		</div>
 		
 		<div class="form-group">
+			<label for="lockPassword">Lock password</label>
+			<g:textField name="lockPassword" class="form-control" value="${lockPassword}" id="lockPassword"
+				placeholder="" />
+		</div>
+		
+		<div class="form-group">
+			<label for="messageFromLastUser">Message from last user</label>
+			<g:textArea name="messageFromLastUser" class="form-control" value="${messageFromLastUser}" id="messageFromLastUser"
+				placeholder="" />
+		</div>
+		
+		<div class="form-group">
 			<label for="priceRate">Price</label>
 			<g:textField name="priceRate" class="form-control" value="${priceRate}" id="priceRate"
 				placeholder="Enter price per hour" />
@@ -38,7 +50,7 @@
 
 		<div class="form-group checkbox">
 			<label for="locked"> <g:checkBox name="locked"
-					checked="${locked}" id="locked" value="1" /> Locked
+					checked="${locked}" id="locked" value="1" /> Locked (riding)
 			</label>
 		</div>
 

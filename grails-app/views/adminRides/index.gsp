@@ -24,6 +24,7 @@
 				<g:sortableColumn property="stopTime" title="Stop time" />
 				<th>Stop location</th>
 				<th>Lock password</th>
+				<th></th>
 			</tr>
 
 		</thead>
@@ -58,6 +59,10 @@
 				<td>
 					${ride.lockPassword}
 				</td>
+				<td><a type="button" class="btn btn-danger btn-sm"
+					href='<g:createLink action="delete" id="${ride.id}"/>'> <span
+						class="glyphicon glyphicon-trash"></span> Delete
+				</a></td>
 			</tr>
 		</g:each>
 	</table>

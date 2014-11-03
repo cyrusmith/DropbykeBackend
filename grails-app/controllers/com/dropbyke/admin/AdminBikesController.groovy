@@ -38,7 +38,9 @@ class AdminBikesController {
 					lat:bike.lat,
 					lng:bike.lng,
 					priceRate:bike.priceRate,
-					locked:bike.locked
+					locked:bike.locked,
+					lockPassword:bike.lockPassword,
+					messageFromLastUser:bike.messageFromLastUser
 				])
 			}
 			return render(view:'edit')
@@ -68,6 +70,8 @@ class AdminBikesController {
 		bike.lng = ParseUtils.strToNumber(params.lng)
 		bike.address = params.address
 		bike.sku = params.sku
+		bike.lockPassword = params.lockPassword
+		bike.messageFromLastUser = params.messageFromLastUser
 
 		System.out.println params
 

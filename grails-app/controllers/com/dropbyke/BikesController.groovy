@@ -112,10 +112,24 @@ class BikesController {
 		}
 
 		try {
-			bikesService.startUsage(authenticatedUser.id, bikeId)
-			return render(status: 500, contentType:"application/json") { ["error": e.message] }
+			Ride ride = bikesService.startUsage(authenticatedUser.id, bikeId)
+			bike.locked = true
+			bike.save()
+			return render(status: 200, contentType:"application/json") { ["ride": [
+					'id': ride.id,
+					'title': bike.title,
+					'rating': bike.rating,
+					'startTime': ride.startTime,
+					'startLat': bike.lat,
+					'startLng': bike.lng,
+					'price': bike.priceRate,
+					'lockPassword': bike.lockPassword, 
+					'message': bike.messageFromLastUser, 
+					'lastRideId': bike.lastRideId 
+				]] }
 		}
 		catch(e) {
+			e.printStackTrace()
 			return render(status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}
