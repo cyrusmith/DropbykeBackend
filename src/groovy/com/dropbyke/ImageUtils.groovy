@@ -49,4 +49,35 @@ class ImageUtils {
 			return false
 		}
 	}
+	
+	static boolean saveUserPhotoFromMultipart(ServletContext context, CommonsMultipartFile f, long id) {
+		
+		if(!id) {
+			log.error("Bike image id not set")
+			return false
+		}
+		
+		if (!okcontents.contains(f.getContentType())) {
+			log.error("Avatar must be one of: ${okcontents}")
+			return false
+		}
+		
+		final String name = f.getOriginalFilename()
+				try {
+					InputStream input = new ByteArrayInputStream(f.getBytes());
+					BufferedImage bImageFromConvert = ImageIO.read(input);
+					
+					String path = context.getRealPath("/images/users/");
+					File bikesPath = new File(path)
+					if(!bikesPath.exists()) {
+						bikesPath.mkdir()
+					}
+					ImageIO.write(bImageFromConvert, "jpg", new File(path + "/" + id+'.jpg'))
+					return true
+				}
+		catch(Exception ex) {
+			log.error(ex)
+			return false
+		}
+	}
 }

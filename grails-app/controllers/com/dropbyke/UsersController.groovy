@@ -1,6 +1,7 @@
 package com.dropbyke
 
 import grails.plugin.springsecurity.annotation.Secured
+import grails.transaction.Transactional;
 import groovy.util.logging.Log4j;
 
 import org.codehaus.groovy.grails.web.json.JSONObject
@@ -13,7 +14,7 @@ class UsersController {
 
 	def phoneService
 	def loginService
-	def springSecurityService	
+	def springSecurityService
 
 	static allowedMethods = [registerPhone:'POST']
 
@@ -48,7 +49,7 @@ class UsersController {
 		if(!code) {
 			return render (status: 400, contentType:"application/json") { ["error": "Code not set"] }
 		}
-		
+
 		if(!key) {
 			return render (status: 400, contentType:"application/json") { ["error": "Key not set"] }
 		}
@@ -56,19 +57,19 @@ class UsersController {
 		JSONObject resp = phoneService.verifySMSCode(code, key)
 
 		log.debug(resp)
-		
+
 		if(!resp) {
 			return render (status: 500, contentType:"application/json") { ["error": "Could not verify code. Please try again later."] }
 		}
-		
+
 		if(!resp.has("verified") || !resp.getBoolean("verified") || !resp.has("tel")) {
 			return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
-		} 
+		}
 
 		User user = loginService.register(resp.getString("tel"))
-		
+
 		String tokenValue = loginService.login(user.phone);
-		
+
 		render (status: 200, contentType:"application/json") { ["access_token": tokenValue] }
 	}
 
@@ -78,9 +79,45 @@ class UsersController {
 		System.out.println "authenticatedUser="  +authenticatedUser
 		render (status: 200, contentType:"application/json") { ["profile": authenticatedUser] }
 	}
-	
+
 	@Secured(['ROLE_USER'])
+	@Transactional
 	def updateProfile() {
-		//String name, String email
+		JSONObject data = request.JSON
+
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+		def name = data.has("name")?data.getString("name"):""
+		def email = data.has("email")?data.getString("email"):""
+
+		User user = User.get(authenticatedUser.id)
+
+		if(user && name && email) {
+
+			user.name = name
+			user.email = email
+			if(user.save()) {
+				return	render (status: 200, contentType:"application/json") { ["profile": user] }
+			}
+			else {
+				return	render (status: 500, contentType:"application/json") { ["error": "Could not save user"] }
+			}
+		}
+
+		return render (status: 400, contentType:"application/json") { ["error": "Empty parameters"] }
+	}
+
+	@Secured(['ROLE_USER'])
+	def uploadPhoto() {
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+		def photo = request.getFile('photo')
+		System.out.println "uploadPhoto"
+		System.out.println photo
+		if(photo.bytes) {
+			if (ImageUtils.saveUserPhotoFromMultipart(servletContext, photo, authenticatedUser.id)) {
+				return render (status: 200, contentType:"application/json") {}
+			}
+			return render (status: 500, contentType:"application/json") {["error": "Failed to save uploaded file"]}
+		}
+		return render (status: 400, contentType:"application/json") { ["error": "No file"] }
 	}
 }
