@@ -14,7 +14,7 @@ import groovy.sql.GroovyRowResult
 class BikesController {
 
 	def dataSource
-	
+
 	@Secured(['permitAll'])
 	def bikesInArea() {
 
@@ -31,59 +31,51 @@ class BikesController {
 		List queryResults
 
 		if((Math.abs(lng1 - lng2) > 0.0000001) && Math.abs(lat1 - lat2) > 0.0000001) {
-			
-		}
-		else {
-			
+			String query = $/
+			select b.id, b.title, b.sku, r.stop_lat, r.stop_lng
+			from bike as b
+			left join ride as r on b.id=r.bike_id
+			where 0 = (select count(id) from ride as rd where rd.bike_id = b.id and rd.stop_time = 0) and
+			stop_lat > :lat1 and stop_lat < :lat2 and
+			stop_lng > :lng1 and stop_lng < :lng2
+			order by b.id, r.stop_time desc
+			/$
+
 			Sql sql = new Sql(dataSource)
-			
-			String query = "select b.id, b.title, b.sku, r.stop_lat, r.stop_lng from bike as b left join ride as r on b.id=r.bike_id where 0 = (select count(id) from ride as rd where rd.bike_id = b.id and rd.stop_time = 0) order by b.id, r.stop_time desc"
-			 
-			final results = sql.rows(query)			
-			
-			queryResults = results 
-			
-			//Ride.executeQuery(query, [max: 20])
-		}
 
-		System.out.println "queryResults=" + queryResults
-		return
+			final results = sql.rows(query, lat1: lat1, lat2:lat2, lng1:lng1, lng2:lng2)
 
-		def rides
-
-		def c = Ride.createCriteria()
-
-		if((Math.abs(lng1 - lng2) > 0.000000001) && Math.abs(lat1 - lat2) > 0.000000001) {
-			rides = c.list(sort:"stopTime", order: "desc") {
-				maxResults 20
-				gt('stopTime', 0L)
-				gt('stopLat', lat1)
-				lt('stopLat', lat2)
-				gt('stopLon',lng1)
-				lt('stopLon', lng2)
-				projections { distinct("bike.id") }
-			}
+			queryResults = results
 		}
 		else {
-			rides = c.list(max: 20) {
-				maxResults 20
-				gt('stopTime', 0L)
-				projections { distinct("bike.id") }
-			}
+
+			String query = $/
+			select b.id, b.title, b.sku, r.stop_lat, r.stop_lng
+			from bike as b
+			left join ride as r on b.id=r.bike_id
+			where 0 = (select count(id) from ride as rd where rd.bike_id = b.id and rd.stop_time = 0)
+			order by b.id, r.stop_time desc
+			/$
+
+			Sql sql = new Sql(dataSource)
+
+			final results = sql.rows(query)
+
+			queryResults = results
 		}
 
-		def bikesCr = Bike.createCriteria()
-
-		def bikes = bikesCr.list() {
-			'in' ('id', rides)
-			projections {
-				property("id")
-				property("title")
-				property("sku")
+		List bikes = []
+		
+		long lastId = 0
+		for(def res in queryResults) {
+			if(res.id == lastId) {
+				continue
 			}
+			lastId = res.id
+			bikes.add(res)
 		}
-
-		System.out.println "rides=" + rides
+		
+		System.out.println "bikes=" + bikes
 
 		render(status: 200, contentType: "application/json") { ["bikes": bikes] }
 	}

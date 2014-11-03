@@ -13,6 +13,7 @@ class UsersController {
 
 	def phoneService
 	def loginService
+	def springSecurityService	
 
 	static allowedMethods = [registerPhone:'POST']
 
@@ -71,6 +72,13 @@ class UsersController {
 		render (status: 200, contentType:"application/json") { ["access_token": tokenValue] }
 	}
 
+	@Secured(['ROLE_USER'])
+	def viewProfile() {
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+		System.out.println "authenticatedUser="  +authenticatedUser
+		render (status: 200, contentType:"application/json") { ["profile": authenticatedUser] }
+	}
+	
 	@Secured(['ROLE_USER'])
 	def updateProfile() {
 		//String name, String email
