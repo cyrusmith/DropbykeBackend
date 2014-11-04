@@ -3,6 +3,7 @@ package com.dropbyke
 import org.codehaus.groovy.grails.web.json.JSONObject;
 
 import grails.plugin.springsecurity.annotation.Secured;
+import grails.transaction.Transactional;
 
 class RidesController {
 
@@ -34,6 +35,34 @@ class RidesController {
 					"error": e.message
 				]
 			}
+		}
+	}
+
+	@Secured('ROLE_USER')
+	@Transactional
+	def viewRide() {
+
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+		long rideId = ParseUtils.strToNumber(params.id)
+
+		def rc = Ride.createCriteria()
+
+		def ride = rc.get {
+			eq('id', rideId)
+			eq('user', authenticatedUser)
+		}
+
+		if(!ride) {
+			return render (status: 404, contentType:"application/json")
+		}
+
+		Bike bike = Bike.get(ride.bike.id)
+
+		return render (status: 200, contentType:"application/json") {
+			[
+				'ride': ride,
+				'bike': bike
+			]
 		}
 	}
 
