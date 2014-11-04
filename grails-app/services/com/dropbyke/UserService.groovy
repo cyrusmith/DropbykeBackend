@@ -19,8 +19,35 @@ class UserService {
 		user.cardExpire = cardExpire
 		user.cardCVC = cardCVC
 		user.stripeCustomerId = stripeCustomerId
+		user.cardVerified = true
 
 		user.save()
 		return true
+	}
+
+	def getUserInfo(long userId) {
+
+		User user = User.get(userId)
+
+		def rc = Ride.createCriteria()
+
+		def rides = rc.list {
+			eq('user', user)
+			eq('stopTime', 0L)
+		}
+
+		def ride = null
+		def bike = null
+
+		if(rides) {
+			ride = rides.get(0)
+			bike = Bike.get(ride.bike.id)
+		}
+
+		return [
+			"user": user,
+			"ride": ride,
+			"bike": bike
+		]
 	}
 }

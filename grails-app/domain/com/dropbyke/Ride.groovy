@@ -6,9 +6,7 @@ class Ride {
 	User user
 	long startTime //in millis
 	long stopTime //in millis
-	String message = ""
-	String lockPassword = ""
-
+	
 	String startAddress = ""
 	double startLat = 0.0
 	double startLng = 0.0
@@ -16,6 +14,10 @@ class Ride {
 	String stopAddress = ""
 	double stopLat = 0.0
 	double stopLng = 0.0
+
+	String message = ""
+	String lockPassword = ""
+	boolean hasPhoto = false
 
 	static hasMany = [paths: Path]
 

@@ -23,22 +23,33 @@ class BikesService {
 		}
 
 		def rc = Ride.createCriteria()
-
 		def rideAlreadyInProgress = rc.list {
 			eq('bike', bike)
 			eq('stopTime', 0L)
 		}
 
-		if(rideAlreadyInProgress || rideAlreadyInProgress.size()) {
+		if(rideAlreadyInProgress && rideAlreadyInProgress.size()) {
 			throw new Exception("Bike already has ride in progres")
 		}
+
+		rc = Ride.createCriteria()
+		rideAlreadyInProgress = rc.list {
+			eq('user', user)
+			eq('stopTime', 0L)
+		}
+
+		if(rideAlreadyInProgress && rideAlreadyInProgress.size()) {
+			throw new Exception("You already have ride in progres")
+		}
 		
-		Ride ride = new Ride(user: user, bike: bike, startLat: bike.lat, startLng: bike.lng, startAddress: bike.address)
+		def startTime = System.currentTimeMillis();
+
+		Ride ride = new Ride(user: user, bike: bike, startTime: startTime, startLat: bike.lat, startLng: bike.lng, startAddress: bike.address)
 
 		if(!ride.save()) {
 			throw new Exception("Failed to create ride")
 		}
-		
+
 		return ride
 	}
 }

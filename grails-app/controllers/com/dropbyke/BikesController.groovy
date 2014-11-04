@@ -94,7 +94,7 @@ class BikesController {
 	}
 
 	@Secured(['ROLE_USER'])
-
+	@Transactional
 	def startUsage() {
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 
@@ -125,7 +125,8 @@ class BikesController {
 					'price': bike.priceRate,
 					'lockPassword': bike.lockPassword, 
 					'message': bike.messageFromLastUser, 
-					'lastRideId': bike.lastRideId 
+					'lastRideId': bike.lastRideId, 
+					'hasPhoto': false 
 				]] }
 		}
 		catch(e) {

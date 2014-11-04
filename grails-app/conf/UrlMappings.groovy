@@ -10,6 +10,9 @@ class UrlMappings {
 		"/api/bikes/startusage"(controller: "bikes", action: "startUsage", method: "POST")		
 		"/api/bikes/$id"(controller: "bikes", action: "view", method: "GET")
 		
+		"/api/rides/photo"(controller: "rides", action: "uploadPhoto", method: "POST")
+		"/api/rides/stop"(controller: "rides", action: "stopRide", method: "POST")
+		
 		"/api/profile/photo"(controller: "users", action: "uploadPhoto", method: "POST")		
 		"/api/profile/"(controller: "users", action: "viewProfile", method: "GET")
 		"/api/profile/"(controller: "users", action: "updateProfile", method: "POST")		

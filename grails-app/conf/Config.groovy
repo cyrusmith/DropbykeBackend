@@ -160,3 +160,5 @@ grails.plugin.springsecurity.rest.token.storage.useGorm = true
 grails.plugin.springsecurity.rest.token.storage.gorm.tokenDomainClassName = 'com.dropbyke.AuthenticationToken'
 
 grails.assets.excludes =  ["bower_components/**/**", "bower.json"]
+
+com.dropbyke.debug = true

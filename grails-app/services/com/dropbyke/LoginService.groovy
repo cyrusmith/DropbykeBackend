@@ -29,6 +29,14 @@ class LoginService {
 
 		String tokenValue = tokenGenerator.generateToken()
 
+		User user = User.findByPhone(aPhone)
+		if(!user) {
+			return false
+		}
+
+		user.isOnline = true
+		user.save()
+
 		def principal = [username: aPhone]
 		try {
 			tokenStorageService.storeToken(tokenValue, principal)
@@ -43,6 +51,12 @@ class LoginService {
 	public boolean logout(String aPhone) {
 
 		def tokens = AuthenticationToken.where { username : aPhone }
+
+		User user = User.findByPhone(aPhone)
+		if(user) {
+			user.isOnline = false
+			user.save()
+		}
 
 		if(!tokens) return false
 

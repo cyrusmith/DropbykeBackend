@@ -19,7 +19,7 @@ class User {
 	String stripeCustomerId = ""
 
 	boolean isOnline = false
-	boolean phoneVerified = false
+	boolean cardVerified = false
 
 	boolean enabled = true
 	boolean accountExpired
