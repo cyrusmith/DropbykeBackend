@@ -134,7 +134,6 @@ class BikesController {
 			return render(status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}
-
 	/**
 	 * Using haversine formula - http://en.wikipedia.org/wiki/Haversine_formula
 	 * @return

@@ -4,6 +4,7 @@ import org.codehaus.groovy.grails.web.json.JSONObject;
 
 import grails.plugin.springsecurity.annotation.Secured;
 import grails.transaction.Transactional;
+import grails.validation.ValidationException;
 
 class RidesController {
 
@@ -90,4 +91,33 @@ class RidesController {
 		}
 		return render (status: 400, contentType:"application/json") { ["error": "No file"] }
 	}
+
+	@Secured('ROLE_USER')
+	def checkout() {
+
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+
+		JSONObject data = request.JSON
+
+		long rideId = data.has("rideId")?data.getLong("rideId"):0L;
+		int rating = data.has("rating")?data.getInt("rating"):0;
+
+		if(!rideId) {
+			return render (status: 400, contentType:"application/json") { ["error": "Ride id not set"] }
+		}
+
+		try {
+			ridesService.setRating(rideId, authenticatedUser.id, rating)
+			return render (status: 200, contentType:"application/json")
+		}
+		catch(ValidationException e) {
+			return render (status: 400, contentType:"application/json") { ["error": e.message] }
+		}
+		catch(Exception e) {
+			return render (status: 500, contentType:"application/json") { ["error": e.message] }
+		}
+
+	}
+
+
 }

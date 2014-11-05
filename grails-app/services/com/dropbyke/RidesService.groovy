@@ -1,6 +1,7 @@
 package com.dropbyke
 
 import grails.transaction.Transactional
+import grails.validation.ValidationException;
 
 @Transactional
 class RidesService {
@@ -109,5 +110,48 @@ class RidesService {
 		Ride ride =  Ride.get(rideId)
 		ride.hasPhoto = true
 		ride.save()
+	}
+
+	def setRating(long rideId, long userId, int rating) {
+		
+		Ride ride = Ride.get(rideId);
+		User user = User.get(userId);
+		
+		if(!ride) {
+			throw new ValidationException("Ride not found")
+		}
+		
+		Bike bike = Bike.get(ride.bike.id)
+		
+		if(!user) {
+			throw new ValidationException("User not found")
+		}
+
+		if(rating < 0 || rating > 5) {
+			throw new ValidationException("Rating has invalid value")
+		}
+
+		BikeRating existingBikeRating = BikeRating.findByUserAndRide(user, ride)
+
+		if(existingBikeRating) {
+			throw new ValidationException("Rating already complete")
+		}
+
+		BikeRating rideRating = new BikeRating(user:user, ride:ride, bike:bike, rating:rating)
+		rideRating.save()
+		
+		def rrc = BikeRating.createCriteria()
+		def bikeRatings = rrc.list {
+			eq('bike', bike)
+			projections {
+				avg('rating')
+			}			
+		}
+		
+		if(bikeRatings) {
+			bike.rating = bikeRatings.get(0)
+			bike.save()
+		}				
+		
 	}
 }
