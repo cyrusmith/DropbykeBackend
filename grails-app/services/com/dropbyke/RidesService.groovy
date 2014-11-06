@@ -113,16 +113,16 @@ class RidesService {
 	}
 
 	def setRating(long rideId, long userId, int rating) {
-		
+
 		Ride ride = Ride.get(rideId);
 		User user = User.get(userId);
-		
+
 		if(!ride) {
 			throw new ValidationException("Ride not found")
 		}
-		
+
 		Bike bike = Bike.get(ride.bike.id)
-		
+
 		if(!user) {
 			throw new ValidationException("User not found")
 		}
@@ -138,20 +138,30 @@ class RidesService {
 		}
 
 		BikeRating rideRating = new BikeRating(user:user, ride:ride, bike:bike, rating:rating)
-		rideRating.save()
-		
-		def rrc = BikeRating.createCriteria()
-		def bikeRatings = rrc.list {
-			eq('bike', bike)
-			projections {
-				avg('rating')
-			}			
+		if(!rideRating.save()) {
+			throw new Exception("Could not save rating")
 		}
-		
-		if(bikeRatings) {
-			bike.rating = bikeRatings.get(0)
-			bike.save()
-		}				
-		
+
+		def rrc = BikeRating.createCriteria()
+		def bikeRatingsSum = rrc.list {
+			eq('bike', bike)
+			projections { sum "rating" }
+		}
+
+		def bikeRatingsCount = BikeRating.countByBike(bike)
+		bikeRatingsSum = bikeRatingsSum.get(0)
+
+		System.out.println bikeRatingsSum
+		System.out.println bikeRatingsCount
+
+		double sum = rating
+		double count = 1
+
+
+		sum = sum + bikeRatingsSum
+		count = count + bikeRatingsCount
+
+		bike.rating = sum / count
+		bike.save()
 	}
 }

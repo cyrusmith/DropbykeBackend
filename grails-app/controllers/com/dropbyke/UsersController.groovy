@@ -18,7 +18,7 @@ class UsersController {
 	def userService
 
 	static allowedMethods = [registerPhone:'POST']
-
+	
 	@Secured(['permitAll'])
 	def registerPhone() {
 
@@ -86,6 +86,7 @@ class UsersController {
 
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 		def info = userService.getUserInfo(authenticatedUser.id)
+		info["timestamp"] = System.currentTimeMillis()
 		render (status: 200, contentType:"application/json") { info }
 	}
 

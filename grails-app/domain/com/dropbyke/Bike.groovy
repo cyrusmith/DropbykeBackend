@@ -6,7 +6,7 @@ class Bike {
 
 	String sku
 	String title
-	int rating
+	double rating
 	int priceRate //cents per hour
 
 	double lat = 0.0

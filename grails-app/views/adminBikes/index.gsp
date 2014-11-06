@@ -20,6 +20,8 @@
 				<g:sortableColumn property="title" title="Title" />
 				<g:sortableColumn property="sku" title="SKU" />
 				<g:sortableColumn property="locked" title="Status" />
+				<g:sortableColumn property="rating" title="Rating" />
+				<th>Lock password</th>
 				<th>Location</th>
 			</tr>
 
@@ -45,8 +47,15 @@
 							class="button button-success">Start ride</g:link>
 					</g:else></td>
 				<td>
+					${bike.rating}
+				</td>
+				<td>
+					${bike.lockPassword}
+				</td>
+				<td>
 					${bike.lat} | ${bike.lng}
 				</td>
+
 			</tr>
 		</g:each>
 	</table>
