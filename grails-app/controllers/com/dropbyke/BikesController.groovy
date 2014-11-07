@@ -30,7 +30,9 @@ class BikesController {
 		lat2 = ParseUtils.strToNumber(params["lat2"], 0.0)
 		lng1 = ParseUtils.strToNumber(params["lng1"], 0.0)
 		lng2 = ParseUtils.strToNumber(params["lng2"], 0.0)
-
+		
+		System.out.println "bikesInArea" + [lat1, lat2, lng1, lng2]
+			
 		def bikes
 		def bc = Bike.createCriteria()
 

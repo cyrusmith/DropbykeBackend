@@ -70,7 +70,8 @@ class RidesService {
 			bike.lockPassword = lockPassword
 			bike.messageFromLastUser = message
 			bike.locked = false
-
+			bike.lastRideId = ride.id
+			
 			if(bike.save()) {
 				return [
 					'bike': bike,
