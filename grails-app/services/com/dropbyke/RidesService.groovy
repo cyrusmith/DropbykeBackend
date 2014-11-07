@@ -7,6 +7,7 @@ import grails.validation.ValidationException;
 class RidesService {
 
 	def grailsApplication
+	def cardService
 
 	def stopRide(long userId, double lat, double lng, String address, String lockPassword, String message = "") {
 
@@ -112,13 +113,25 @@ class RidesService {
 		ride.save()
 	}
 
-	def setRating(long rideId, long userId, int rating) {
+	def checkout(long rideId, long userId, int rating) {
 
 		Ride ride = Ride.get(rideId);
 		User user = User.get(userId);
 
 		if(!ride) {
 			throw new ValidationException("Ride not found")
+		}
+		
+		if(ride.charged) {
+			throw new IllegalStateException("Ride already charged")
+		}
+		
+		if(!ride.stopTime) {
+			throw new IllegalStateException("Ride not finished")
+		}
+		
+		if(ride.stopTime - ride.startTime  < 0) {
+			throw new IllegalStateException("Invalid time period")
 		}
 
 		Bike bike = Bike.get(ride.bike.id)
@@ -151,17 +164,22 @@ class RidesService {
 		def bikeRatingsCount = BikeRating.countByBike(bike)
 		bikeRatingsSum = bikeRatingsSum.get(0)
 
-		System.out.println bikeRatingsSum
-		System.out.println bikeRatingsCount
-
 		double sum = rating
 		double count = 1
-
 
 		sum = sum + bikeRatingsSum
 		count = count + bikeRatingsCount
 
 		bike.rating = sum / count
-		bike.save()
+		bike.save()				
+		
+		long amount = Math.ceil((ride.stopTime - ride.startTime)*bike.priceRate/36000.0)
+		
+		if(amount < 50) {
+			return true
+		}
+		
+		cardService.checkout(userId, rideId, amount)		
+		
 	}
 }

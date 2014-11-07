@@ -18,6 +18,8 @@ class Ride {
 	String message = ""
 	String lockPassword = ""
 	boolean hasPhoto = false
+	
+	boolean charged = false
 
 	static hasMany = [paths: Path]
 

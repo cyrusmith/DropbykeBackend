@@ -72,4 +72,5 @@ class CardController {
 			return render(status: 500, contentType: "application/json") { [error: e.message] }
 		}
 	}
+	
 }

@@ -10,6 +10,7 @@ class RidesController {
 
 	def springSecurityService
 	def ridesService
+	def cardService
 
 	@Secured('ROLE_USER')
 	def stopRide() {
@@ -107,8 +108,8 @@ class RidesController {
 		}
 
 		try {
-			ridesService.setRating(rideId, authenticatedUser.id, rating)
-			return render (status: 200, contentType:"application/json")
+			ridesService.checkout(rideId, authenticatedUser.id, rating)
+			return render (status: 200, contentType:"application/json") { }
 		}
 		catch(ValidationException e) {
 			return render (status: 400, contentType:"application/json") { ["error": e.message] }
