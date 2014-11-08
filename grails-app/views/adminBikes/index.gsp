@@ -37,14 +37,10 @@
 				<td><g:if test="${bike.locked}">
 				Locked
 				
-					<g:link action="unlock" id="${bike.id}"
-							class="button button-success">Unlock</g:link>
-
-
+					<g:link action="stopUsage" id="${bike.id}" class="button button-success">Stop usage</g:link>
 
 					</g:if> <g:else>
-					Free <g:link controller="adminRides" action="add" id="${bike.id}"
-							class="button button-success">Start ride</g:link>
+					Available for usage 
 					</g:else></td>
 				<td>
 					${bike.rating}

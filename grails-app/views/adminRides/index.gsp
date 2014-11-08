@@ -31,9 +31,9 @@
 		</thead>
 		<g:each in="${rides}" var="ride">
 			<tr>
-				<td><a href="<g:createLink action="edit" id="${ride.id}"/>">
-						${ride.id}
-				</a></td>
+				<td>
+					${ride.id} <!--  <a href="<g:createLink action="edit" id="${ride.id}"/>"></a>-->
+				</td>
 				<td><g:link controller="adminBikes" action="edit"
 						id="${ride.bike.id}">
 						${ride.bike.title}

@@ -10,6 +10,16 @@ class ParseUtils {
 			return dflt
 		}
 	}
+	
+	public static long strToLong(String val, long dflt = 0L) {
+		
+		try {
+			return Long.parseLong(val)
+		}
+		catch(e) {
+			return dflt
+		}
+	}
 
 	public static  double strToNumber(String val, double dflt = 0.0) {
 
