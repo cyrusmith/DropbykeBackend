@@ -33,7 +33,10 @@ class UserService {
 
 		def rides = rc.list {
 			eq('user', user)
-			eq('stopTime', 0L)
+			or {
+				eq('stopTime', 0L)
+				eq('complete', false)
+			}			
 		}
 
 		def ride = null

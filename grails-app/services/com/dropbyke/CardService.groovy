@@ -103,6 +103,9 @@ class CardService {
 			throw new Exception("Could not create charge")
 		}
 
+		ride.charged = true
+		ride.save()
+		
 		return charge
 	}
 

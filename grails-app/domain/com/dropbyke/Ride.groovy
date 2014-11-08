@@ -19,6 +19,8 @@ class Ride {
 	String lockPassword = ""
 	boolean hasPhoto = false
 	
+	boolean complete = false
+	
 	boolean charged = false
 
 	static hasMany = [paths: Path]

@@ -30,7 +30,7 @@ class RidesController {
 			message = ""
 		}
 		
-		try {
+		try {			
 			def result = ridesService.stopRide(authenticatedUser.id, lat, lng, address, lockPassword, message)
 			return render (status: 200, contentType:"application/json") { result }
 		}

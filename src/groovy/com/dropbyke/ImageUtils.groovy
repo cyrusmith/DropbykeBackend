@@ -50,6 +50,12 @@ class ImageUtils {
 		}
 	}
 	
+	static boolean checkRidePhotoExists(ServletContext context, long rideId) {
+		String path = context.getRealPath("/images/rides/");
+		File imageFile = new File(path + "/" + rideId +'.jpg')
+		return imageFile.exists()
+	}
+	
 	static boolean saveUserPhotoFromMultipart(ServletContext context, CommonsMultipartFile f, long id) {
 		
 		if(!id) {

@@ -8,6 +8,7 @@ class RidesService {
 
 	def grailsApplication
 	def cardService
+	def servletContext
 
 	def stopRide(long userId, double lat, double lng, String address, String lockPassword, String message = "") {
 
@@ -47,12 +48,19 @@ class RidesService {
 		Bike bike = Bike.get(ride.bike.id)
 
 		if(!ride.hasPhoto) {
-			if(isDebug) {
-				ride.hasPhoto = true
+
+			if(ImageUtils.checkRidePhotoExists(servletContext, ride.id)) {
+				setHasPhoto(ride.id)
 			}
 			else {
-				throw new Exception("Illegal state: ride have no bike")
+				if(isDebug) {
+					ride.hasPhoto = true
+				}
+				else {
+					throw new Exception("Illegal state: ride have no bike")
+				}
 			}
+						
 		}
 
 		ride.stopTime = System.currentTimeMillis()
@@ -124,8 +132,8 @@ class RidesService {
 			throw new ValidationException("Ride not found")
 		}
 		
-		if(ride.charged) {
-			throw new IllegalStateException("Ride already charged")
+		if(ride.complete) {
+			throw new IllegalStateException("Ride already complete")
 		}
 		
 		if(!ride.stopTime) {
@@ -174,6 +182,9 @@ class RidesService {
 
 		bike.rating = sum / count
 		bike.save()				
+		
+		ride.complete = true
+		ride.save()
 		
 		long amount = Math.ceil((ride.stopTime - ride.startTime)*bike.priceRate/36000.0)
 		
