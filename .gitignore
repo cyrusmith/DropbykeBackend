@@ -16,4 +16,5 @@ stacktrace.log
 /.link_to_grails_plugins/
 /target-eclipse/
 grails-app/conf/DataSource.groovy
+grails-app/conf/Config.groovy
 web-app/images/**/*.*

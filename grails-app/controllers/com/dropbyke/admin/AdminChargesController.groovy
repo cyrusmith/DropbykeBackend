@@ -4,7 +4,7 @@ import grails.plugin.springsecurity.annotation.Secured;
 
 import com.dropbyke.Charge;
 
-@Secured(["permitAll"])
+@Secured(["ROLE_ADMIN"])
 class AdminChargesController {
 
     def index() {		

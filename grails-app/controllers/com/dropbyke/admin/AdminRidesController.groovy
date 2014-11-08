@@ -15,7 +15,7 @@ import com.dropbyke.User;
 import grails.plugin.springsecurity.annotation.Secured;
 import grails.transaction.Transactional;
 
-@Secured(["permitAll"])
+@Secured(["ROLE_ADMIN"])
 class AdminRidesController {
 
 	def index() {
