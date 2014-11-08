@@ -14,6 +14,7 @@ class Bike {
 	String address = 0.0
 	String lockPassword = ""
 	String messageFromLastUser = ""
+	String lastUserPhone = ""
 	long lastRideId = 0
 	
 	boolean locked = false

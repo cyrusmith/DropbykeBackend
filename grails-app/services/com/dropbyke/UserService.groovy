@@ -43,7 +43,7 @@ class UserService {
 			ride = rides.get(0)
 			bike = Bike.get(ride.bike.id)
 		}
-
+		
 		return [
 			"user": user,
 			"ride": ride,

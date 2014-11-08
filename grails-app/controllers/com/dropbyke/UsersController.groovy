@@ -87,6 +87,22 @@ class UsersController {
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 		def info = userService.getUserInfo(authenticatedUser.id)
 		info["timestamp"] = System.currentTimeMillis()
+		
+		grails.converters.JSON.registerObjectMarshaller(Bike, { Bike bike ->   return [
+                    id : bike.id,
+					sku : bike.sku,
+					title : bike.title,
+					rating : bike.rating,
+					priceRate : bike.priceRate,
+					lat: bike.lat,
+					lng: bike.lng,
+					address: bike.address,
+					lockPassword: bike.lockPassword,
+					messageFromLastUser: bike.messageFromLastUser ? bike.messageFromLastUser : null,
+					lastRideId: bike.lastRideId,	
+					lastUserPhone: bike.lastUserPhone
+            ] })
+				
 		render (status: 200, contentType:"application/json") { info }
 	}
 

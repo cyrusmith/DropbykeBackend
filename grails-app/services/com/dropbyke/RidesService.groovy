@@ -68,9 +68,10 @@ class RidesService {
 			bike.lng = lng
 			bike.address = address
 			bike.lockPassword = lockPassword
-			bike.messageFromLastUser = message
+			bike.messageFromLastUser = message ? message  : ""
 			bike.locked = false
 			bike.lastRideId = ride.id
+			bike.lastUserPhone = user.phone
 			
 			if(bike.save()) {
 				return [

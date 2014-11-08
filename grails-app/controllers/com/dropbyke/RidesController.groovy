@@ -24,11 +24,14 @@ class RidesController {
 		def lng = data.has("lng")?ParseUtils.strToNumber(data.getString("lng"), 0.0):0.0
 		def address = data.has("address")?data.getString("address"):""
 		def lockPassword = data.has("lockPassword")?data.getString("lockPassword"):""
-		def message = data.has("message")?data.getString("message"):""
+		def message = data.has("message")?data.get("message"):""
 
+		if(!message) {
+			message = ""
+		}
+		
 		try {
 			def result = ridesService.stopRide(authenticatedUser.id, lat, lng, address, lockPassword, message)
-			System.out.println result
 			return render (status: 200, contentType:"application/json") { result }
 		}
 		catch(e) {
