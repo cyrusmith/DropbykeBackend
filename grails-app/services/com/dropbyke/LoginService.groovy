@@ -80,7 +80,7 @@ class LoginService {
 	}
 
 	private Role getRole(String aAuthority) {
-		Role role = Role.where { authority:aAuthority }.get()
+		Role role = Role.findByAuthority(aAuthority)
 
 		if(!role) {
 			role = new Role(authority: aAuthority)

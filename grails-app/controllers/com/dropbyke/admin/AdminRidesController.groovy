@@ -22,6 +22,7 @@ class AdminRidesController {
 		[rides: Ride.list(params), ridesCount: Ride.count()]
 	}
 
+	
 	@Transactional
 	def edit() {
 
@@ -36,7 +37,7 @@ class AdminRidesController {
 
 			return render(view:'edit', model: ["ride": params])
 		}
-
+/*
 		Ride ride
 		if(params.id) {
 			ride = Ride.get(params.id)
@@ -91,7 +92,7 @@ class AdminRidesController {
 		else {
 			flash.error = "Could not save ride"
 			render(view:'edit', model: ["ride": params])
-		}
+		}*/
 	}
 
 	@Transactional
@@ -102,7 +103,7 @@ class AdminRidesController {
 		}
 		return this.edit()
 	}
-
+	/*
 	@Transactional
 	def delete() {
 		if(!params.id) return sendError(code: 400)
@@ -137,5 +138,5 @@ class AdminRidesController {
 		catch(e) {
 			return dflt
 		}
-	}
+	}*/
 }

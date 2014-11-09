@@ -112,7 +112,7 @@ class AdminUsersController {
 
 	@Transactional
 	def delete() {
-
+/*
 		if(!params.id) return sendError(code: 400)
 		
 		Role role = Role.findByAuthority('ROLE_USER')
@@ -129,6 +129,6 @@ class AdminUsersController {
 			flash.message = "User deleted"
 		}
 		redirect(action:"index")
-		
+	*/	
 	}
 }

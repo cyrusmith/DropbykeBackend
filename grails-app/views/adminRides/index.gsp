@@ -8,10 +8,10 @@
 <body>
 
 	<h2>
-		Rides <a type="button" class="btn btn-primary"
+		Rides <!--  <a type="button" class="btn btn-primary"
 			href="<g:createLink action="add"/>"> <span
 			class="glyphicon glyphicon-plus"></span> Add ride
-		</a>
+		</a>-->
 	</h2>
 
 	<table class="table users-table table-striped">
@@ -25,7 +25,6 @@
 				<th>Complete</th>
 				<th>Stop location</th>
 				<th>Lock password</th>
-				<th></th>
 			</tr>
 
 		</thead>
@@ -63,15 +62,11 @@
 				<td>
 					${ride.lockPassword}
 				</td>
-				<td><a type="button" class="btn btn-danger btn-sm"
-					href='<g:createLink action="delete" id="${ride.id}"/>'> <span
-						class="glyphicon glyphicon-trash"></span> Delete
-				</a></td>
 			</tr>
 		</g:each>
 	</table>
-
-	<g:paginate total="${ridesCount}" />
-
+	<div class="pagination">
+		<g:paginate total="${ridesCount}" />
+	</div>
 </body>
 </html>

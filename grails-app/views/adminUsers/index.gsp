@@ -28,7 +28,7 @@
 		<g:each in="${users}" var="user">
 			<tr>
 				<td><g:link action="edit" id="${user.id}">
-						${user.phone}
+						${user.username}
 					</g:link></td>
 				<td>
 					${user.email?:"not set"}
@@ -44,14 +44,16 @@
 							class="glyphicon glyphicon-user user-status-offline text-danger"></span>
 					</g:else></td>
 				<td><g:if test="${user.isOnline}">
-						<button type="button" class="btn btn-primary btn-sm">
+						<!--  <button type="button" class="btn btn-primary btn-sm">
 							<span class="glyphicon glyphicon-log-out"></span> Log out
-						</button>
-					</g:if>
+						</button>-->
+					</g:if> <g:if test="${user.username != 'admin'}">
+						<a type="button" class="btn btn-danger btn-sm"
+							href='<g:createLink action="delete" id="${user.id}"/>'> <span
+							class="glyphicon glyphicon-trash"></span> Delete
+						</a></td>
 
-					<a type="button" class="btn btn-danger btn-sm" href='<g:createLink action="delete" id="${user.id}"/>'>
-						<span class="glyphicon glyphicon-trash"></span> Delete
-					</a></td>
+				</g:if>
 			</tr>
 		</g:each>
 	</table>

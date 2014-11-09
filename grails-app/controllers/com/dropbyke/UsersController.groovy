@@ -107,6 +107,15 @@ class UsersController {
 	}
 
 	@Secured(['ROLE_USER'])
+	def logout() {
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+		if(loginService.logout(authenticatedUser.phone)) {
+			return render (status: 200, contentType:"application/json") { }
+		}
+		return render (status: 500, contentType:"application/json") { }
+	}
+	
+	@Secured(['ROLE_USER'])
 	@Transactional
 	def updateProfile() {
 		JSONObject data = request.JSON

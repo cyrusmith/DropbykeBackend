@@ -37,7 +37,8 @@
 				<td><g:if test="${bike.locked}">
 				Locked
 				
-					<g:link action="stopUsage" id="${bike.id}" class="button button-success">Stop usage</g:link>
+					<g:link action="stopUsage" id="${bike.id}"
+							class="button button-success">Stop usage</g:link>
 
 					</g:if> <g:else>
 					Available for usage 
@@ -56,7 +57,9 @@
 		</g:each>
 	</table>
 
-	<g:paginate total="${bikesCount}" />
+	<div class="pagination">
+		<g:paginate total="${bikesCount}" />
+	</div>
 
 </body>
 </html>
