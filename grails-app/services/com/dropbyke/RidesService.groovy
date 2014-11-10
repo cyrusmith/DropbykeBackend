@@ -8,7 +8,7 @@ class RidesService {
 
 	def grailsApplication
 	def cardService
-	def servletContext
+	def fileUploadService
 
 	def stopRide(long userId, double lat, double lng, String address, String lockPassword, String message = "") {
 
@@ -49,7 +49,7 @@ class RidesService {
 
 		if(!ride.hasPhoto) {
 
-			if(ImageUtils.checkRidePhotoExists(servletContext, ride.id)) {
+			if(fileUploadService.checkPhotoExists("/images/rides/", ride.id)) {
 				setHasPhoto(ride.id)
 			}
 			else {

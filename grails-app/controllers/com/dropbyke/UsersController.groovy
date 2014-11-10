@@ -16,9 +16,10 @@ class UsersController {
 	def loginService
 	def springSecurityService
 	def userService
+	def fileUploadService
 
 	static allowedMethods = [registerPhone:'POST']
-	
+
 	@Secured(['permitAll'])
 	def registerPhone() {
 
@@ -87,22 +88,24 @@ class UsersController {
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 		def info = userService.getUserInfo(authenticatedUser.id)
 		info["timestamp"] = System.currentTimeMillis()
-		
-		grails.converters.JSON.registerObjectMarshaller(Bike, { Bike bike ->   return [
-                    id : bike.id,
-					sku : bike.sku,
-					title : bike.title,
-					rating : bike.rating,
-					priceRate : bike.priceRate,
-					lat: bike.lat,
-					lng: bike.lng,
-					address: bike.address,
-					lockPassword: bike.lockPassword,
-					messageFromLastUser: bike.messageFromLastUser ? bike.messageFromLastUser : null,
-					lastRideId: bike.lastRideId,	
-					lastUserPhone: bike.lastUserPhone
-            ] })
-				
+
+		grails.converters.JSON.registerObjectMarshaller(Bike, { Bike bike ->
+			return [
+				id : bike.id,
+				sku : bike.sku,
+				title : bike.title,
+				rating : bike.rating,
+				priceRate : bike.priceRate,
+				lat: bike.lat,
+				lng: bike.lng,
+				address: bike.address,
+				lockPassword: bike.lockPassword,
+				messageFromLastUser: bike.messageFromLastUser ? bike.messageFromLastUser : null,
+				lastRideId: bike.lastRideId,
+				lastUserPhone: bike.lastUserPhone
+			]
+		})
+
 		render (status: 200, contentType:"application/json") { info }
 	}
 
@@ -114,7 +117,7 @@ class UsersController {
 		}
 		return render (status: 500, contentType:"application/json") { }
 	}
-	
+
 	@Secured(['ROLE_USER'])
 	@Transactional
 	def updateProfile() {
@@ -147,11 +150,14 @@ class UsersController {
 		def photo = request.getFile('photo')
 		System.out.println "uploadPhoto"
 		System.out.println photo
-		if(photo && photo.bytes) {
-			if (ImageUtils.saveUserPhotoFromMultipart(servletContext, photo, authenticatedUser.id)) {
+		if(photo && !photo.isEmpty()) {
+			try {
+				fileUploadService.savePhoto(photo, "/images/users/", authenticatedUser.id)
 				return render (status: 200, contentType:"application/json") {}
 			}
-			return render (status: 500, contentType:"application/json") {["error": "Failed to save uploaded file"]}
+			catch(e) {
+				return render (status: 500, contentType:"application/json") {["error": "Failed to save uploaded file: " + e.message]}
+			}
 		}
 		return render (status: 400, contentType:"application/json") { ["error": "No file"] }
 	}

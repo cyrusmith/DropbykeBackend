@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import com.dropbyke.Bike;
-import com.dropbyke.ImageUtils;
 import com.dropbyke.Ride;
 import com.dropbyke.User;
 

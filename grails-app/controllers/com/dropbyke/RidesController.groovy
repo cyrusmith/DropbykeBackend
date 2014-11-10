@@ -11,6 +11,7 @@ class RidesController {
 	def springSecurityService
 	def ridesService
 	def cardService
+	def fileUploadService
 
 	@Secured('ROLE_USER')
 	def stopRide() {
@@ -29,8 +30,8 @@ class RidesController {
 		if(!message) {
 			message = ""
 		}
-		
-		try {			
+
+		try {
 			def result = ridesService.stopRide(authenticatedUser.id, lat, lng, address, lockPassword, message)
 			return render (status: 200, contentType:"application/json") { result }
 		}
@@ -86,12 +87,15 @@ class RidesController {
 			return render (status: 500, contentType:"application/json") {["error": "Could not find ride"]}
 		}
 
-		if(photo && photo.bytes) {
-			if (ImageUtils.saveRidePhotoFromMultipart(servletContext, photo, ride.id)) {
+		if(photo && !photo.isEmpty()) {
+			try {
+				fileUploadService.savePhoto(photo, "/images/rides/", ride.id)
 				ridesService.setHasPhoto(ride.id)
 				return render (status: 200, contentType:"application/json") {}
 			}
-			return render (status: 500, contentType:"application/json") {["error": "Failed to save uploaded file"]}
+			catch(e) {
+				return render (status: 500, contentType:"application/json") {["error": "Failed to save uploaded file: " + e.message]}
+			}
 		}
 		return render (status: 400, contentType:"application/json") { ["error": "No file"] }
 	}

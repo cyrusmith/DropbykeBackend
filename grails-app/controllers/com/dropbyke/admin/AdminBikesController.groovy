@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import com.dropbyke.Bike;
-import com.dropbyke.ImageUtils;
 import com.dropbyke.ParseUtils;
 import com.dropbyke.Ride;
 import com.dropbyke.User;
@@ -20,6 +19,7 @@ import grails.transaction.Transactional;
 class AdminBikesController {
 
 	def servletContext
+	def fileUploadService
 
 	def index() {
 		[bikes: Bike.list(params), bikesCount: Bike.count()]
@@ -166,10 +166,14 @@ class AdminBikesController {
 		}
 
 		def photo = request.getFile('photo')
-		if(photo.bytes) {
-			if (!ImageUtils.saveRidePhotoFromMultipart(servletContext, photo, ride.id)) {
-				errors.add "Could not save photo"
+		if(photo && !photo.isEmpty()) {			
+			try {
+				fileUploadService.savePhoto(photo, "/images/rides/", ride.id)
 			}
+			catch(e) {
+				errors.add "Could not save photo" + e.message
+			}
+			
 		}
 		else {
 			errors.add "Photo not set"
