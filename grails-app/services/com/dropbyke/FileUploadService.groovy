@@ -1,5 +1,6 @@
 package com.dropbyke
 
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
@@ -41,19 +42,53 @@ class FileUploadService {
 			}
 		}
 
-		InputStream inputStream = file.getInputStream()
+		InputStream inputStream = null
+		BufferedImage srcImg = null
+		BufferedImage bufferedThumbnail = null
 
-		BufferedImage im = ImageIO.read(file.getInputStream());
-		ImageIO.write(im, "jpg", new File(path + "/" + id +'.jpg'))
+		try {
 
-		inputStream.close()
+			inputStream = file.getInputStream()
+			srcImg = ImageIO.read(inputStream);
+
+			println srcImg.getWidth()
+
+			def destWidth = 1200
+
+			if(srcImg.getWidth() > destWidth) {
+				Image thumbnail = srcImg.getScaledInstance(destWidth, -1, Image.SCALE_SMOOTH);
+				bufferedThumbnail = new BufferedImage(thumbnail.getWidth(null),
+						thumbnail.getHeight(null),
+						BufferedImage.TYPE_INT_RGB)
+				bufferedThumbnail.getGraphics().drawImage(thumbnail, 0, 0, null);
+				ImageIO.write(bufferedThumbnail, "jpg", new File(path + "/" + id +'.jpg'))
+			}
+			else {
+				ImageIO.write(srcImg, "jpg", new File(path + "/" + id +'.jpg'))
+			}
+		}
+		catch(e) {
+			println e.message
+			throw e
+		}
+		finally {
+			if(bufferedThumbnail) {
+				bufferedThumbnail.flush()
+			}
+			if(srcImg) {
+				srcImg.flush()
+			}
+
+			if(inputStream) {
+				inputStream.close()
+			}
+		}
 	}
-	
+
 	def checkPhotoExists(String folder, long id) {
 		def servletContext = ServletContextHolder.servletContext
 		String path = servletContext.getRealPath(folder);
 		File imageFile = new File(path + "/" + id +'.jpg')
 		return imageFile.exists()
 	}
-	
 }
