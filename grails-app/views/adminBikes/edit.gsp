@@ -18,36 +18,52 @@
 	</g:set>
 
 	<g:if test="${locked}">
-		<h5>Bike in use <g:link action="stopUsage" id="${id}"
-							class="btn btn-danger btn-sm">Stop usage</g:link></h5>
+		<h5>
+			Bike in use
+			<g:link action="stopUsage" id="${id}" class="btn btn-danger btn-sm">Stop usage</g:link>
+		</h5>
 		<table class="table">
 			<tr>
 				<th>Title</th>
-				<td>${title}</td>
+				<td>
+					${title}
+				</td>
 			</tr>
 			<tr>
 				<th>SKU</th>
-				<td>${sku}</td>
+				<td>
+					${sku}
+				</td>
 			</tr>
 			<tr>
 				<th>Lock password</th>
-				<td>${lockPassword}</td>
+				<td>
+					${lockPassword}
+				</td>
 			</tr>
 			<tr>
 				<th>Message from last user</th>
-				<td>${messageFromLastUser}</td>
+				<td>
+					${messageFromLastUser}
+				</td>
 			</tr>
 			<tr>
 				<th>Price per hour</th>
-				<td>${priceRate}</td>
+				<td>
+					${priceRate}
+				</td>
 			</tr>
 			<tr>
 				<th>Location</th>
-				<td>${lat} | ${lng}</td>
+				<td>
+					${lat} | ${lng}
+				</td>
 			</tr>
 			<tr>
 				<th>Address</th>
-				<td>${address}</td>
+				<td>
+					${address}
+				</td>
 			</tr>
 		</table>
 
@@ -85,6 +101,20 @@
 				<g:textField name="priceRate" class="form-control"
 					value="${priceRate}" id="priceRate"
 					placeholder="Enter price per hour" />
+			</div>
+
+			<g:if test="${hasImage}">
+				<div class="form-group">
+					<img
+						src='<g:createLink  uri="/images/bikes/${id}.jpg?=${new Date().getTime()}"/>' />
+
+				</div>
+			</g:if>
+
+			<div class="form-group">
+				<label for="photo">Photo</label> <input type="file" name="photo"
+					id="photo" />
+				<p>Should be &lt; 100kB, jpg, gif, png</p>
 			</div>
 
 			<div class="form-group location-start">

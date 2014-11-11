@@ -5,6 +5,8 @@ import grails.transaction.Transactional
 @Transactional
 class UserService {
 
+	def fileUploadService
+
 	def setCardInfo(long userId, String cardNumber, String cardName, String cardExpire, String cardCVC, String stripeCustomerId) {
 
 		User user = User.get(userId)
@@ -36,17 +38,18 @@ class UserService {
 			or {
 				eq('stopTime', 0L)
 				eq('complete', false)
-			}			
+			}
 		}
 
 		def ride = null
 		def bike = null
+		def rideImageExists = false
 
 		if(rides) {
 			ride = rides.get(0)
 			bike = Bike.get(ride.bike.id)
 		}
-		
+
 		return [
 			"user": user,
 			"ride": ride,

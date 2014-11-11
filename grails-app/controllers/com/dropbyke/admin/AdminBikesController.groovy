@@ -27,13 +27,18 @@ class AdminBikesController {
 
 	@Transactional
 	def edit() {
-
+		
+		def isHasImage = false
+		
 		if(request.get) {
 			if(params.id) {
 				Bike bike = Bike.get(params.id)
 				if(!bike) {
 					return response.sendError(404)
 				}
+				
+				isHasImage = fileUploadService.checkPhotoExists("/images/bikes/", bike.id)
+				
 				return render(view:'edit', model: [
 					id:bike.id,
 					title:bike.title,
@@ -44,7 +49,8 @@ class AdminBikesController {
 					priceRate:bike.priceRate,
 					locked:bike.locked,
 					lockPassword:bike.lockPassword,
-					messageFromLastUser:bike.messageFromLastUser
+					messageFromLastUser:bike.messageFromLastUser,
+					hasImage: isHasImage
 				])
 			}
 			return render(view:'edit')
@@ -70,7 +76,8 @@ class AdminBikesController {
 				priceRate:bike.priceRate,
 				locked:bike.locked,
 				lockPassword:bike.lockPassword,
-				messageFromLastUser:bike.messageFromLastUser
+				messageFromLastUser:bike.messageFromLastUser,
+				hasImage: isHasImage
 			])
 		}
 
@@ -82,21 +89,78 @@ class AdminBikesController {
 			])
 		}
 
+		List errors = []
+		
+		if(!params.title) {
+			errors.add "Title not set"
+		}
+		
+		if(!params.sku) {
+			errors.add "sku not set"
+		}
+
+		if(!params.priceRate) {
+			errors.add "Price not set"
+		}
+
+		if(!params.lat || !params.lng) {
+			errors.add "Location not set"
+		}
+
+		if(!params.address) {
+			errors.add "Address not set"
+		}
+
+		if(!params.lockPassword) {
+			errors.add "Lock not set"
+		}
+
+		if(!params.messageFromLastUser) {
+			errors.add "Message from last user not set"
+		}
+
+		if(errors.size() > 0) {
+			flash.error = errors.join(", ")
+			return render(view:'edit', model: [
+				id:bike?.id,
+				title:params.title,
+				sku:params.sku,
+				address:params.address,
+				lat:params.lat,
+				lng:params.lng,
+				priceRate:params.priceRate,
+				locked:bike?.locked,
+				lockPassword:params.lockPassword,
+				messageFromLastUser:params.messageFromLastUser,
+				hasImage: isHasImage
+			])
+		}
+
 		bike.title = params.title
 		bike.sku = params.sku
 		bike.priceRate = ParseUtils.strToInt(params.priceRate)
 		bike.lat = ParseUtils.strToNumber(params.lat)
 		bike.lng = ParseUtils.strToNumber(params.lng)
 		bike.address = params.address
-		bike.sku = params.sku
 		bike.lockPassword = params.lockPassword
 		bike.messageFromLastUser = params.messageFromLastUser
 
-		System.out.println params
-
 		if(bike.save()) {
-			flash.message = "Bike " + params.title + " successfully saved"
-			redirect(action: "index")
+
+			def photo = request.getFile('photo')
+
+			if(photo && !photo.isEmpty()) {
+				try {
+					fileUploadService.savePhoto(photo, "/images/bikes/", bike.id)
+					flash.message = "Bike " + params.title + " successfully saved"
+					redirect(action: "index")
+				}
+				catch(e) {
+					flash.message = "Could not save photo " + e.message
+					redirect(action: "edit", id: bike.id)
+				}
+			}
+
 		}
 		else {
 			flash.error = "Could not save bike"
@@ -166,14 +230,13 @@ class AdminBikesController {
 		}
 
 		def photo = request.getFile('photo')
-		if(photo && !photo.isEmpty()) {			
+		if(photo && !photo.isEmpty()) {
 			try {
 				fileUploadService.savePhoto(photo, "/images/rides/", ride.id)
 			}
 			catch(e) {
 				errors.add "Could not save photo" + e.message
 			}
-			
 		}
 		else {
 			errors.add "Photo not set"
