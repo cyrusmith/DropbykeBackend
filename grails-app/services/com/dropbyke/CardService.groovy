@@ -47,8 +47,6 @@ class CardService {
 
 	@Transactional
 	def checkout(long userId, long rideId, long amount) {
-		//Do Stripe charge
-		//save checkout
 
 		Stripe.apiKey = grailsApplication.config.com.dropbyke.stripeApiKey;
 
@@ -80,8 +78,17 @@ class CardService {
 
 		Map<String, Object> initialMetadata = new HashMap<String, Object>();
 		initialMetadata.put("phone", user.phone)
-		initialMetadata.put("email", user.email)
-		initialMetadata.put("name", user.name)
+
+		if(user.email && !"".equals(user.email)) {
+			initialMetadata.put("email", user.email)
+		}
+		
+		if(user.name && !"".equals(user.name)) {
+			initialMetadata.put("name", user.name)
+		}
+		else {
+			initialMetadata.put("name", user.username)
+		}				
 
 		chargeParams.put("metadata", initialMetadata)
 

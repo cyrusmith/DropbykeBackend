@@ -17,11 +17,13 @@ class Ride {
 
 	String message = ""
 	String lockPassword = ""
-	boolean hasPhoto = false
-	
-	boolean complete = false
-	
+	boolean hasPhoto = false	
+	boolean complete = false	
 	boolean charged = false
+	
+	long sum = 0
+	
+	int distance = 0
 
 	static hasMany = [paths: Path]
 

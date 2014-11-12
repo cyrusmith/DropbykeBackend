@@ -60,7 +60,6 @@ class RidesService {
 					throw new Exception("Illegal state: ride have no bike")
 				}
 			}
-						
 		}
 
 		ride.stopTime = System.currentTimeMillis()
@@ -69,6 +68,9 @@ class RidesService {
 		ride.stopAddress = address
 		ride.lockPassword = lockPassword
 		ride.message = message
+
+		int hours = Math.ceil((ride.stopTime - ride.startTime)/3600000)
+		ride.sum = hours * bike.priceRate * 100
 
 		if(ride.save()) {
 
@@ -80,7 +82,7 @@ class RidesService {
 			bike.locked = false
 			bike.lastRideId = ride.id
 			bike.lastUserPhone = user.phone
-			
+
 			if(bike.save()) {
 				return [
 					'bike': bike,
@@ -131,17 +133,21 @@ class RidesService {
 		if(!ride) {
 			throw new ValidationException("Ride not found")
 		}
-		
+
 		if(ride.complete) {
 			throw new IllegalStateException("Ride already complete")
 		}
-		
+
 		if(!ride.stopTime) {
 			throw new IllegalStateException("Ride not finished")
 		}
-		
+
 		if(ride.stopTime - ride.startTime  < 0) {
 			throw new IllegalStateException("Invalid time period")
+		}
+		
+		if(ride.sum  < 50) {
+			throw new IllegalStateException("Sum it too low: " + ride.sum)
 		}
 
 		Bike bike = Bike.get(ride.bike.id)
@@ -181,18 +187,12 @@ class RidesService {
 		count = count + bikeRatingsCount
 
 		bike.rating = sum / count
-		bike.save()				
-		
+		bike.save()
+
 		ride.complete = true
 		ride.save()
-		
-		long amount = Math.ceil((ride.stopTime - ride.startTime)*bike.priceRate/36000.0)
-		
-		if(amount < 50) {
-			return true
-		}
-		
-		cardService.checkout(userId, rideId, amount)		
-		
+
+		cardService.checkout(userId, rideId, ride.sum)
+
 	}
 }
