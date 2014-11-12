@@ -128,11 +128,21 @@ class UsersController {
 		def email = data.has("email")?data.getString("email"):""
 
 		User user = User.get(authenticatedUser.id)
-
-		if(user && name && email) {
-
+		
+		if(!user) {
+			return	render (status: 401, contentType:"application/json") { ["error": "User not authenticated"] }
+		}
+		
+		if(name) {
 			user.name = name
+		}
+
+		if(email) {
 			user.email = email
+		}
+
+		if(email || name) {
+			user.editedOnce = true
 			if(user.save()) {
 				return	render (status: 200, contentType:"application/json") { ["profile": user] }
 			}
@@ -140,8 +150,7 @@ class UsersController {
 				return	render (status: 500, contentType:"application/json") { ["error": "Could not save user"] }
 			}
 		}
-
-		return render (status: 400, contentType:"application/json") { ["error": "Empty parameters"] }
+		return	render (status: 400, contentType:"application/json") { ["error": "No arguments set"] }
 	}
 
 	@Secured(['ROLE_USER'])

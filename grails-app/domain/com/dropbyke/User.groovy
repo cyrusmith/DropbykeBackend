@@ -17,6 +17,8 @@ class User {
 	String cardExpire = ""
 	String cardCVC = ""
 	String stripeCustomerId = ""
+	
+	boolean editedOnce = false
 
 	boolean isOnline = false
 	boolean cardVerified = false
