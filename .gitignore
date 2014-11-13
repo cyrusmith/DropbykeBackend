@@ -17,4 +17,6 @@ stacktrace.log
 /target-eclipse/
 grails-app/conf/DataSource.groovy
 grails-app/conf/Config.groovy
-web-app/images/**/*.*
+web-app/images/bikes
+web-app/images/rides
+web-app/images/users

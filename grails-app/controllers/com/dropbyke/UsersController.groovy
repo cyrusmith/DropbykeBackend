@@ -88,6 +88,11 @@ class UsersController {
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 		def info = userService.getUserInfo(authenticatedUser.id)
 		info["timestamp"] = System.currentTimeMillis()
+		
+		boolean hasPhoto = false
+		if(info.ride) {
+			hasPhoto = fileUploadService.checkPhotoExists("/images/rides", info.ride.id)
+		}
 
 		grails.converters.JSON.registerObjectMarshaller(Bike, { Bike bike ->
 			return [
@@ -103,6 +108,26 @@ class UsersController {
 				messageFromLastUser: bike.messageFromLastUser ? bike.messageFromLastUser : null,
 				lastRideId: bike.lastRideId,
 				lastUserPhone: bike.lastUserPhone
+			]
+		})
+
+		grails.converters.JSON.registerObjectMarshaller(Ride, { Ride ride ->
+			return [
+				id : ride.id,
+				charged: ride.charged,
+				complete: ride.complete,
+				distance: ride.distance,
+				message: ride.message,
+				startAddress: ride.startAddress,
+				startLat: ride.startLat,
+				startLng: ride.startLng,
+				startTime: ride.startTime,
+				stopAddress: ride.stopAddress,
+				stopLat: ride.stopLat,
+				stopLng: ride.stopLng,
+				stopTime: ride.stopTime,
+				sum: ride.sum,
+				hasPhoto: hasPhoto
 			]
 		})
 
@@ -128,11 +153,11 @@ class UsersController {
 		def email = data.has("email")?data.getString("email"):""
 
 		User user = User.get(authenticatedUser.id)
-		
+
 		if(!user) {
 			return	render (status: 401, contentType:"application/json") { ["error": "User not authenticated"] }
 		}
-		
+
 		if(name) {
 			user.name = name
 		}

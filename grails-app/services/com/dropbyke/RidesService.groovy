@@ -10,7 +10,7 @@ class RidesService {
 	def cardService
 	def fileUploadService
 
-	def stopRide(long userId, double lat, double lng, String address, String lockPassword, String message = "") {
+	def stopRide(long userId, double lat, double lng, String address, String message = "", int distance = 0) {
 
 		boolean isDebug = grailsApplication.config.com.dropbyke.debug
 
@@ -20,10 +20,6 @@ class RidesService {
 
 		if(!address) {
 			throw new Exception("Address not set")
-		}
-
-		if(!lockPassword) {
-			throw new Exception("Lock password not set")
 		}
 
 		User user = User.get(userId)
@@ -47,18 +43,9 @@ class RidesService {
 
 		Bike bike = Bike.get(ride.bike.id)
 
-		if(!ride.hasPhoto) {
-
-			if(fileUploadService.checkPhotoExists("/images/rides/", ride.id)) {
-				setHasPhoto(ride.id)
-			}
-			else {
-				if(isDebug) {
-					ride.hasPhoto = true
-				}
-				else {
-					throw new Exception("Illegal state: ride have no bike")
-				}
+		if(!fileUploadService.checkPhotoExists("/images/rides/", ride.id)) {
+			if(!isDebug) {
+				throw new Exception("Illegal state: ride have no photo")
 			}
 		}
 
@@ -66,8 +53,8 @@ class RidesService {
 		ride.stopLat = lat
 		ride.stopLng = lng
 		ride.stopAddress = address
-		ride.lockPassword = lockPassword
 		ride.message = message
+		ride.distance = distance*1000
 
 		int hours = Math.ceil((ride.stopTime - ride.startTime)/3600000)
 		ride.sum = hours * bike.priceRate * 100
@@ -77,7 +64,6 @@ class RidesService {
 			bike.lat = lat
 			bike.lng = lng
 			bike.address = address
-			bike.lockPassword = lockPassword
 			bike.messageFromLastUser = message ? message  : ""
 			bike.locked = false
 			bike.lastRideId = ride.id
@@ -119,12 +105,6 @@ class RidesService {
 		return rideAlreadyInProgress.get(0)
 	}
 
-	def setHasPhoto(long rideId) {
-		Ride ride =  Ride.get(rideId)
-		ride.hasPhoto = true
-		ride.save()
-	}
-
 	def checkout(long rideId, long userId, int rating) {
 
 		Ride ride = Ride.get(rideId);
@@ -145,7 +125,7 @@ class RidesService {
 		if(ride.stopTime - ride.startTime  < 0) {
 			throw new IllegalStateException("Invalid time period")
 		}
-		
+
 		if(ride.sum  < 50) {
 			throw new IllegalStateException("Sum it too low: " + ride.sum)
 		}
@@ -193,6 +173,5 @@ class RidesService {
 		ride.save()
 
 		cardService.checkout(userId, rideId, ride.sum)
-
 	}
 }

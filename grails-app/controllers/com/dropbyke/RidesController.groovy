@@ -20,19 +20,18 @@ class RidesController {
 
 		JSONObject data = request.JSON
 
-		//double lat, double lng, String address, String lockPassword, String message = ""
 		def lat = data.has("lat")?ParseUtils.strToNumber(data.getString("lat"), 0.0):0.0
 		def lng = data.has("lng")?ParseUtils.strToNumber(data.getString("lng"), 0.0):0.0
 		def address = data.has("address")?data.getString("address"):""
-		def lockPassword = data.has("lockPassword")?data.getString("lockPassword"):""
 		def message = data.has("message")?data.get("message"):""
+		def distance = data.has("distance")?ParseUtils.strToInt(data.get("distance")):0
 
 		if(!message) {
 			message = ""
 		}
 
 		try {
-			def result = ridesService.stopRide(authenticatedUser.id, lat, lng, address, lockPassword, message)
+			def result = ridesService.stopRide(authenticatedUser.id, lat, lng, address, message, distance)
 			return render (status: 200, contentType:"application/json") { result }
 		}
 		catch(e) {
@@ -90,7 +89,6 @@ class RidesController {
 		if(photo && !photo.isEmpty()) {
 			try {
 				fileUploadService.savePhoto(photo, "/images/rides/", ride.id)
-				ridesService.setHasPhoto(ride.id)
 				return render (status: 200, contentType:"application/json") {}
 			}
 			catch(e) {
@@ -124,8 +122,5 @@ class RidesController {
 		catch(Exception e) {
 			return render (status: 500, contentType:"application/json") { ["error": e.message] }
 		}
-
 	}
-
-
 }

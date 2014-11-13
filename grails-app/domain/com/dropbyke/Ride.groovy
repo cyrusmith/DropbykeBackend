@@ -16,8 +16,6 @@ class Ride {
 	double stopLng = 0.0
 
 	String message = ""
-	String lockPassword = ""
-	boolean hasPhoto = false	
 	boolean complete = false	
 	boolean charged = false
 	

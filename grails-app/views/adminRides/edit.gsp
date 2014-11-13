@@ -169,12 +169,6 @@
 
 		</div>
 
-
-		<div class="form-group">
-			<label for="lockPassword">Lock password</label>
-			<g:textField class="form-control" name="lockPassword"
-				id="lockPassword" value="${ride?.lockPassword}" />
-		</div>
 		<div class="form-group">
 			<label for="message">Message from user</label>
 			<g:textArea class="form-control" name="message" id="message"

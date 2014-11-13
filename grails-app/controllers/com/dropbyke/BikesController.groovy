@@ -132,7 +132,6 @@ class BikesController {
 				]] }
 		}
 		catch(e) {
-			e.printStackTrace()
 			return render(status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}

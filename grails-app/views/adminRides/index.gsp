@@ -24,7 +24,7 @@
 				<g:sortableColumn property="stopTime" title="Stop time" />
 				<th>Complete</th>
 				<th>Stop location</th>
-				<th>Lock password</th>
+				<th>Distance</th>
 			</tr>
 
 		</thead>
@@ -60,7 +60,7 @@
 					${ride.stopLat}|${ride.stopLng}
 				</td>
 				<td>
-					${ride.lockPassword}
+					${ride.distance / 1000}
 				</td>
 			</tr>
 		</g:each>
