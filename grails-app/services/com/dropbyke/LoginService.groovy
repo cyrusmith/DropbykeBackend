@@ -11,11 +11,37 @@ class LoginService {
 	TokenGenerator tokenGenerator
 	TokenStorageService tokenStorageService
 
-	public User register(String aPhone) {
+	public User registerFacebook(String uid, String name, String email) {
 
-		User user = this.getExistingUser(aPhone)
+		if(!uid) {
+			return null
+		}
+
+		User user = User.findByFacebookId(uid)
 
 		if(user == null) {
+			user = new User(facebookId:uid, username:uid, password: uid, name:name, email: email)
+			user.save()
+			Role role = getRole("ROLE_USER")
+			UserRole.create(user, role)
+		}
+
+		user
+	}
+
+	public User register(String aPhone) {
+
+		def uc = User.createCriteria()
+
+		List users = uc.list {
+			eq('phone', aPhone)
+			eq('facebookId', "")
+		}
+
+		User user = null
+		if(users && users.size() > 0) {
+			user = users.get(0)
+		} else {
 			user = new User(username: aPhone, password: aPhone, phone: aPhone)
 			user.save()
 			Role role = getRole("ROLE_USER")
@@ -25,7 +51,25 @@ class LoginService {
 		user
 	}
 
-	public String login(String aPhone) {
+	public String loginFacebook(String uid) {
+
+		String tokenValue = tokenGenerator.generateToken()
+
+		User user = User.findByFacebookId(uid)
+		if(!user) {
+			throw new IllegalStateException("Could not find user with uid " + uid)
+		}
+
+		user.isOnline = true
+		user.save()
+
+		def principal = [username: uid]
+		tokenStorageService.storeToken(tokenValue, principal)
+
+		return tokenValue
+	}
+
+	public String loginPhone(String aPhone) {
 
 		String tokenValue = tokenGenerator.generateToken()
 
@@ -50,7 +94,7 @@ class LoginService {
 
 	public boolean logout(String aPhone) {
 
-		def tokens = AuthenticationToken.where { username : aPhone }
+		def tokens = AuthenticationToken.where { username: aPhone }
 
 		User user = User.findByPhone(aPhone)
 		if(user) {

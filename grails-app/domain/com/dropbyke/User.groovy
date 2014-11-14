@@ -5,12 +5,12 @@ class User {
 	transient springSecurityService
 
 	static hasMany = [rides: Ride]
-	
+
+	String facebookId = ""	
 	String username	
 	String password
 	String name = ""
 	String email = ""
-	String facebookId = ""
 	String phone = ""
 	String cardNumber = ""
 	String cardName = ""

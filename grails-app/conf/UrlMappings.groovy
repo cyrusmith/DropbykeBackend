@@ -2,8 +2,10 @@ class UrlMappings {
 
 	static mappings = {
 		
-		"/api/register"(controller:"users", action: "registerPhone", method:"POST")		
-		"/api/verify"(controller:"users", action: "verifyCode", method:"POST")
+		"/api/loginFacebook"(controller:"users", action: "loginFacebook", method:"POST")		
+		"/api/register"(controller:"users", action: "sendSMS", method:"POST")		
+		"/api/verify"(controller:"users", action: "verifySMSCodeAndRegister", method:"POST")
+		"/api/verifyAuthenticated"(controller:"users", action: "verifySMSCode", method:"POST")
 		"/api/addcard"(controller:"card", action: "addCard", method:"POST")
 
 		"/api/bikes/"(controller: "bikes", action: "bikesInArea", method: "GET")

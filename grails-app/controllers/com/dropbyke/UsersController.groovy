@@ -17,11 +17,58 @@ class UsersController {
 	def springSecurityService
 	def userService
 	def fileUploadService
+	def facebookService
 
 	static allowedMethods = [registerPhone:'POST']
 
 	@Secured(['permitAll'])
-	def registerPhone() {
+	def loginFacebook() {
+
+		JSONObject data = request.JSON
+		String uid = data.has("uid")?data.getString("uid"):null
+		String token = data.has("token")?data.getString("token"):null
+
+		if(!uid || !token) {
+			return render (status: 400, contentType:"application/json") { ["error": "Invalid params"] }
+		}
+
+		try {
+
+			Map userInfo = facebookService.getUserInfo(token)
+
+			if(!userInfo && userInfo["id"]) {
+				return render (status: 500, contentType:"application/json") { ["error": "Failed to get info from facebook"] }
+			}
+
+			User user = loginService.registerFacebook(uid, userInfo["name"]?userInfo["name"]:"", userInfo["email"]?userInfo["email"]:"")
+
+			if(!user) {
+				return render (status: 500, contentType:"application/json") { ["error": "Failed register new user"] }
+			}
+
+			try {
+				String tokenValue = loginService.loginFacebook(userInfo["id"])
+
+				userInfo = userService.getUserInfo(user.id)
+
+				render (status: 200, contentType:"application/json") {
+					[
+						"user_info": userInfo,
+						"access_token": tokenValue
+					]
+				}
+			}
+			catch(e) {
+				return render (status: 500, contentType:"application/json") { ["error": e.message] }
+			}
+		}
+		catch(e) {
+			return render (status: 500, contentType:"application/json") { ["error": "Error during request"] }
+		}
+	}
+
+	@Secured(['permitAll'])
+	def sendSMS() {
 
 		JSONObject data = request.JSON
 
@@ -40,8 +87,49 @@ class UsersController {
 		render (status: 200, contentType:"application/json") { ["request_key": resp.getString("id")] }
 	}
 
+	@Secured(['ROLE_USER'])
+	def verifySMSCode() {
+		JSONObject data = request.JSON
+
+		String code = data.has("code")?data.getString("code"):null
+		String key = data.has("verify_key")?data.getString("verify_key"):null
+
+		if(!code) {
+			return render (status: 400, contentType:"application/json") { ["error": "Code not set"] }
+		}
+
+		if(!key) {
+			return render (status: 400, contentType:"application/json") { ["error": "Key not set"] }
+		}
+
+		JSONObject resp = phoneService.verifySMSCode(code, key)
+
+		log.debug(resp)
+
+		if(!resp) {
+			return render (status: 500, contentType:"application/json") { ["error": "Could not verify code. Please try again later."] }
+		}
+
+		if(!resp.has("verified") || !resp.getBoolean("verified") || !resp.has("tel")) {
+			return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
+		}
+
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+		if(!userService.setPhone(authenticatedUser.id, resp.getString("tel"))) {
+			return render (status: 500, contentType:"application/json") { ["error": "Could not update phone number."] }
+		}
+
+		def userInfo = userService.getUserInfo(authenticatedUser.id)
+
+		render (status: 200, contentType:"application/json") {
+			[
+				"user_info": userInfo
+			]
+		}
+	}
+
 	@Secured(['permitAll'])
-	def verifyCode() {
+	def verifySMSCodeAndRegister() {
 
 		JSONObject data = request.JSON
 
@@ -69,8 +157,7 @@ class UsersController {
 		}
 
 		User user = loginService.register(resp.getString("tel"))
-
-		String tokenValue = loginService.login(user.phone);
+		String tokenValue = loginService.loginPhone(user.phone)
 
 		def userInfo = userService.getUserInfo(user.id)
 
@@ -80,6 +167,7 @@ class UsersController {
 				"access_token": tokenValue
 			]
 		}
+		
 	}
 
 	@Secured(['ROLE_USER'])

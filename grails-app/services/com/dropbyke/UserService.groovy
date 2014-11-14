@@ -56,4 +56,17 @@ class UserService {
 			"bike": bike
 		]
 	}
+
+	def setPhone(long userId, String phone) {
+		
+		User user = User.get(userId)
+		
+		if(!user || user.phone) {
+			return false
+		}
+
+		user.phone = phone
+
+		user.save()
+	}
 }
