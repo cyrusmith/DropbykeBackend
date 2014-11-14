@@ -11,11 +11,10 @@ import groovy.util.logging.Log4j;
 class CardController {
 
 	def cardService
-	def userService
 	def springSecurityService
 
 	@Secured(['ROLE_USER'])
-	def addCard() {
+	def editCard() {
 
 		JSONObject data = request.JSON
 
@@ -60,17 +59,20 @@ class CardController {
 
 			def authenticatedUser = springSecurityService.loadCurrentUser()
 
-			if(userService.setCardInfo(authenticatedUser.id, number, name, expire, cvc, cust.getId())) {
-				return render(status: 200, contentType: "application/json") { customer }
+			try {
+				if(cardService.editCard(authenticatedUser.id, number, name, expire, cvc, cust.getId())) {
+					return render(status: 200, contentType: "application/json") { customer }
+				}
+				else {
+					return render(status: 500, contentType: "application/json") { [error: "Could not save card info. Please try again later."] }
+				}
 			}
-			else {
-				return render(status: 500, contentType: "application/json") { [error: "Could not save card info. Please try again later."] }
+			catch(e) {
+				return render(status: 500, contentType: "application/json") { [error: e.message] }
 			}
-			
 		}
 		catch(Exception e) {
 			return render(status: 500, contentType: "application/json") { [error: e.message] }
 		}
 	}
-	
 }

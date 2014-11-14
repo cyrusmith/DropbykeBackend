@@ -167,7 +167,6 @@ class UsersController {
 				"access_token": tokenValue
 			]
 		}
-		
 	}
 
 	@Secured(['ROLE_USER'])
@@ -216,6 +215,16 @@ class UsersController {
 				stopTime: ride.stopTime,
 				sum: ride.sum,
 				hasPhoto: hasPhoto
+			]
+		})
+
+		grails.converters.JSON.registerObjectMarshaller(Card, { Card card ->
+			return [
+				id : card.id,
+				number : card.number,
+				expire : card.expire,
+				name : card.name,
+				cvc : card.cvc,
 			]
 		})
 

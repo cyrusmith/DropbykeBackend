@@ -14,6 +14,34 @@ class CardService {
 
 	def grailsApplication
 
+	@Transactional
+	def editCard(long userId, String number, String name, String expire, String cvc, String stripeCustomerId) {
+
+		User user = User.get(userId)
+
+		if(!user) {
+			throw new IllegalArgumentException("User not found")
+		}
+
+		Card card = user.cards.find { it.number == number }
+
+		if(!card) {
+			card = new Card(number: number, name:name, expire:expire, cvc:cvc, stripeCustomerId:stripeCustomerId)
+
+			user.addToCards(card).save()
+		}
+		else {
+			card.number = number
+			card.name = name
+			card.expire = expire
+			card.cvc = cvc
+			card.stripeCustomerId = stripeCustomerId
+			card.save()
+		}
+
+		return card
+	}
+
 	def createCustomer(String cardNumber, String name, String expireMonth, String expireYear, String cvc) {
 
 		log.debug("Create customer with: {" + cardNumber + ", " + name + ", " + cvc + "}")
@@ -65,55 +93,63 @@ class CardService {
 			throw new IllegalArgumentException("Could not find ride");
 		}
 
-		if(!user.stripeCustomerId) {
-			throw new IllegalStateException("Stripe customer id is not set");
+		if(user.cards.isEmpty()) {
+			throw new IllegalStateException("User has no cards");
 		}
 
-		Map<String, Object> chargeParams = new HashMap<String, Object>();
+		for(Card card in user.cards) {
 
-		chargeParams.put("amount", amount);
-		chargeParams.put("currency", "usd");
-		chargeParams.put("customer", user.stripeCustomerId);
-		chargeParams.put("description", "Charge for test@example.com");
+			try {
+				Map<String, Object> chargeParams = new HashMap<String, Object>();
 
-		Map<String, Object> initialMetadata = new HashMap<String, Object>();
-		initialMetadata.put("phone", user.phone)
+				chargeParams.put("amount", amount);
+				chargeParams.put("currency", "usd");
+				chargeParams.put("customer", card.stripeCustomerId);
+				chargeParams.put("description", "Charge for " + (user.name ? user.name : user.phone));
 
-		if(user.email && !"".equals(user.email)) {
-			initialMetadata.put("email", user.email)
+				Map<String, Object> initialMetadata = new HashMap<String, Object>();
+				initialMetadata.put("phone", user.phone)
+
+				if(user.email && !"".equals(user.email)) {
+					initialMetadata.put("email", user.email)
+				}
+
+				if(user.name && !"".equals(user.name)) {
+					initialMetadata.put("name", user.name)
+				}
+				else {
+					initialMetadata.put("name", user.username)
+				}
+
+				chargeParams.put("metadata", initialMetadata)
+
+				Charge charge = Charge.create(chargeParams)
+
+				if(!charge) {
+					continue;
+				}
+
+				println charge
+
+				com.dropbyke.Charge dbCharge = new com.dropbyke.Charge(
+						amount: amount,
+						user: user,
+						ride: ride,
+						cardNumber: card.number,
+						stripeChargeId: charge.getId(),
+						timestamp: System.currentTimeMillis()
+						)
+				dbCharge.save()
+
+				ride.charged = true
+				ride.save()
+				return true
+			}
+			catch(e) {
+				println e.message
+				continue
+			}
 		}
-		
-		if(user.name && !"".equals(user.name)) {
-			initialMetadata.put("name", user.name)
-		}
-		else {
-			initialMetadata.put("name", user.username)
-		}				
-
-		chargeParams.put("metadata", initialMetadata)
-
-		Charge charge = Charge.create(chargeParams)
-		
-		System.out.println charge
-
-		com.dropbyke.Charge dbCharge = new com.dropbyke.Charge(
-				amount: amount,
-				user: user,
-				ride: ride,
-				cardNumber: user.cardNumber,
-				stripeChargeId: charge.getId(),
-				timestamp: System.currentTimeMillis()
-				)
-		dbCharge.save()
-
-		if(!charge) {
-			throw new Exception("Could not create charge")
-		}
-
-		ride.charged = true
-		ride.save()
-		
-		return charge
+		return false
 	}
-
 }

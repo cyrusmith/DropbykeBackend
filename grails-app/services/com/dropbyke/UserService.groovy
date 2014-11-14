@@ -53,14 +53,15 @@ class UserService {
 		return [
 			"user": user,
 			"ride": ride,
-			"bike": bike
+			"bike": bike,
+			"cards": user.cards
 		]
 	}
 
 	def setPhone(long userId, String phone) {
 		
 		User user = User.get(userId)
-		
+		println "setPhone " + user.phone
 		if(!user || user.phone) {
 			return false
 		}

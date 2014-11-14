@@ -4,24 +4,20 @@ class User {
 
 	transient springSecurityService
 
-	static hasMany = [rides: Ride]
-
+	static hasMany = [rides: Ride, cards: Card]
+	
+	static fetchMode = [cards: 'eager']
+	
 	String facebookId = ""	
 	String username	
 	String password
 	String name = ""
 	String email = ""
 	String phone = ""
-	String cardNumber = ""
-	String cardName = ""
-	String cardExpire = ""
-	String cardCVC = ""
-	String stripeCustomerId = ""
 	
 	boolean editedOnce = false
 
 	boolean isOnline = false
-	boolean cardVerified = false
 	
 	boolean shareFacebook = true
 

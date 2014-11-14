@@ -6,7 +6,7 @@ class UrlMappings {
 		"/api/register"(controller:"users", action: "sendSMS", method:"POST")		
 		"/api/verify"(controller:"users", action: "verifySMSCodeAndRegister", method:"POST")
 		"/api/verifyAuthenticated"(controller:"users", action: "verifySMSCode", method:"POST")
-		"/api/addcard"(controller:"card", action: "addCard", method:"POST")
+		"/api/aditcard"(controller:"card", action: "editCard", method:"POST")
 
 		"/api/bikes/"(controller: "bikes", action: "bikesInArea", method: "GET")
 		"/api/bikes/startusage"(controller: "bikes", action: "startUsage", method: "POST")		
