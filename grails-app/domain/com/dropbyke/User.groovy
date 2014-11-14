@@ -22,6 +22,8 @@ class User {
 
 	boolean isOnline = false
 	boolean cardVerified = false
+	
+	boolean shareFacebook = true
 
 	boolean enabled = true
 	boolean accountExpired

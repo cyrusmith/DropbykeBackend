@@ -88,7 +88,7 @@ class UsersController {
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 		def info = userService.getUserInfo(authenticatedUser.id)
 		info["timestamp"] = System.currentTimeMillis()
-		
+
 		boolean hasPhoto = false
 		if(info.ride) {
 			hasPhoto = fileUploadService.checkPhotoExists("/images/rides", info.ride.id)
@@ -151,6 +151,7 @@ class UsersController {
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 		def name = data.has("name")?data.getString("name"):""
 		def email = data.has("email")?data.getString("email"):""
+		def shareFacebook = data.has("shareFacebook")?data.getBoolean("shareFacebook"):true
 
 		User user = User.get(authenticatedUser.id)
 
@@ -165,6 +166,8 @@ class UsersController {
 		if(email) {
 			user.email = email
 		}
+
+		user.shareFacebook = shareFacebook
 
 		if(email || name) {
 			user.editedOnce = true
