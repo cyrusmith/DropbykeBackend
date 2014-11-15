@@ -32,7 +32,6 @@ class LoginService {
 	public User register(String aPhone) {
 
 		def uc = User.createCriteria()
-
 		List users = uc.list {
 			eq('phone', aPhone)
 			eq('facebookId', "")
@@ -73,7 +72,17 @@ class LoginService {
 
 		String tokenValue = tokenGenerator.generateToken()
 
-		User user = User.findByPhone(aPhone)
+		def uc = User.createCriteria()		
+		List users = uc.list {
+			eq('phone', aPhone)
+			eq('facebookId', "")
+		}
+
+		User user = null
+		if(users && users.size() > 0) {
+			user = users.get(0)
+		} 
+		
 		if(!user) {
 			return false
 		}
@@ -82,12 +91,7 @@ class LoginService {
 		user.save()
 
 		def principal = [username: aPhone]
-		try {
-			tokenStorageService.storeToken(tokenValue, principal)
-		}
-		catch(Exception err) {
-			return false
-		}
+		tokenStorageService.storeToken(tokenValue, principal)
 
 		return tokenValue
 	}

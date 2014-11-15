@@ -156,16 +156,23 @@ class UsersController {
 			return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
 		}
 
-		User user = loginService.register(resp.getString("tel"))
-		String tokenValue = loginService.loginPhone(user.phone)
+		try {
+			User user = loginService.register(resp.getString("tel"))
+			String tokenValue = loginService.loginPhone(user.phone)
 
-		def userInfo = userService.getUserInfo(user.id)
+			def userInfo = userService.getUserInfo(user.id)
 
-		render (status: 200, contentType:"application/json") {
-			[
-				"user_info": userInfo,
-				"access_token": tokenValue
-			]
+			render (status: 200, contentType:"application/json") {
+				[
+					"user_info": userInfo,
+					"access_token": tokenValue
+				]
+			}
+		}
+		catch(e) {
+			render (status: 200, contentType:"application/json") {
+				["error": e.message]
+			}
 		}
 	}
 
@@ -235,9 +242,11 @@ class UsersController {
 	def logout() {
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 		if(loginService.logout(authenticatedUser.phone)) {
-			return render (status: 200, contentType:"application/json") { }
+			return render (status: 200, contentType:"application/json") {
+			}
 		}
-		return render (status: 500, contentType:"application/json") { }
+		return render (status: 500, contentType:"application/json") {
+		}
 	}
 
 	@Secured(['ROLE_USER'])
@@ -287,10 +296,13 @@ class UsersController {
 		if(photo && !photo.isEmpty()) {
 			try {
 				fileUploadService.savePhoto(photo, "/images/users/", authenticatedUser.id)
-				return render (status: 200, contentType:"application/json") {}
+				return render (status: 200, contentType:"application/json") {
+				}
 			}
 			catch(e) {
-				return render (status: 500, contentType:"application/json") {["error": "Failed to save uploaded file: " + e.message]}
+				return render (status: 500, contentType:"application/json") {
+					["error": "Failed to save uploaded file: " + e.message]
+				}
 			}
 		}
 		return render (status: 400, contentType:"application/json") { ["error": "No file"] }
