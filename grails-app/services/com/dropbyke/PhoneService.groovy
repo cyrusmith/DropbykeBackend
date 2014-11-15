@@ -21,10 +21,12 @@ import groovy.util.logging.Log4j;
 @Log4j
 class PhoneService {
 
+	def grailsApplication
+
 	class MyAuthenticator extends Authenticator {
 
 		protected PasswordAuthentication getPasswordAuthentication() {
-			return new PasswordAuthentication("sk_test_JF4z1PFLKRUCettRiiRglvt8",
+			return new PasswordAuthentication(grailsApplication.config.com.dropbyke.getproveApiKey,
 			"password_no_important".toCharArray());
 		}
 	}
