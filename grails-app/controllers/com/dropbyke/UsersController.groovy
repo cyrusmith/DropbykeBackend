@@ -46,6 +46,18 @@ class UsersController {
 				return render (status: 500, contentType:"application/json") { ["error": "Failed register new user"] }
 			}
 
+			if(!fileUploadService.checkPhotoExists("/images/users", user.id)) {
+
+				try {
+					facebookService.downloadPhoto(user.id, token)
+				}
+				catch(e) {
+					log.error("Error downloading image from facebook " + e.message)
+					println "Error downloading image from facebook " + e.message
+				}
+			}
+
+
 			try {
 				String tokenValue = loginService.loginFacebook(userInfo["id"])
 

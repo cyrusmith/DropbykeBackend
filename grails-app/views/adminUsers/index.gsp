@@ -21,7 +21,7 @@
 				<g:sortableColumn property="email" title="Email" />
 				<g:sortableColumn property="name" title="Name" />
 				<g:sortableColumn property="isOnline" title="Status" />
-				<th>Actions</th>
+				<!--  <th>Actions</th>-->
 			</tr>
 
 		</thead>
@@ -43,15 +43,15 @@
 						<span
 							class="glyphicon glyphicon-user user-status-offline text-danger"></span>
 					</g:else></td>
-				<td><g:if test="${user.isOnline}">
-						<!--  <button type="button" class="btn btn-primary btn-sm">
+				<!--<td><g:if test="${user.isOnline}">
+						  <button type="button" class="btn btn-primary btn-sm">
 							<span class="glyphicon glyphicon-log-out"></span> Log out
-						</button>-->
+						</button>
 					</g:if> <g:if test="${user.username != 'admin'}">
 						<a type="button" class="btn btn-danger btn-sm"
 							href='<g:createLink action="delete" id="${user.id}"/>'> <span
 							class="glyphicon glyphicon-trash"></span> Delete
-						</a></td>
+						</a></td>-->
 
 				</g:if>
 			</tr>
