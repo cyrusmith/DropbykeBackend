@@ -221,10 +221,6 @@ class AdminBikesController {
 			errors.add "Location not set"
 		}
 
-		if(!params.lockPassword) {
-			errors.add "Lock password not set"
-		}
-
 		if(!params.message) {
 			errors.add "Message not set"
 		}
@@ -247,7 +243,6 @@ class AdminBikesController {
 		double stopLng = ParseUtils.strToNumber(params.stopLng)
 		long stopTime = ParseUtils.strToLong(params.stopTime)*1000
 		String message = params.message
-		String lockPassword = params.lockPassword
 
 		if(Math.abs(stopLat) < 0.00001 || Math.abs(stopLng) < 0.00001) {
 			errors.add "Location not set"
@@ -280,7 +275,6 @@ class AdminBikesController {
 				bike: [
 					id: bike.id,
 					title: bike.title,
-					lockPassword:params.lockPassword,
 					messageFromLastUser: params.message
 				],
 				user: user
@@ -293,14 +287,11 @@ class AdminBikesController {
 		ride.stopLng = stopLng
 		ride.stopTime = stopTime
 		ride.message = message
-		ride.lockPassword = lockPassword
-		ride.lockPassword = true
 
 		bike.locked = false
 		bike.lat = stopLat
 		bike.lng = stopLng
 		bike.address = stopAddress
-		bike.lockPassword = lockPassword
 		bike.messageFromLastUser = message
 		bike.lastUserPhone = user.phone
 		bike.lastRideId = ride.id

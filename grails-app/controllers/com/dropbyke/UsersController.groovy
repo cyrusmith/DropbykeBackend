@@ -87,16 +87,24 @@ class UsersController {
 		String phone = data.has("phone")?data.getString("phone"):null
 
 		if(!phone) {
-
 			return render (status: 400, contentType:"application/json") { ["error": "Phone not set"] }
 		}
-		JSONObject resp = phoneService.sendSMS(phone)
 
-		if(!resp || !resp.has("id")) {
-			return render (status: 500, contentType:"application/json") { ["error": "Could not submit SMS. Please try again later."] }
+		String error = "SMS submission failed"
+		try {
+			String key = phoneService.sendSMS(phone)
+			if(key) {
+				return render (status: 200, contentType:"application/json") { ["request_key": key] }
+			}
+			else {
+				error = "Coul not get response from SMS service"
+			}
+		}
+		catch(e) {
+			error = e.message
 		}
 
-		render (status: 200, contentType:"application/json") { ["request_key": resp.getString("id")] }
+		return render (status: 500, contentType:"application/json") { ["error": error] }
 	}
 
 	@Secured(['ROLE_USER'])
@@ -104,6 +112,7 @@ class UsersController {
 		JSONObject data = request.JSON
 
 		String code = data.has("code")?data.getString("code"):null
+		String phone = data.has("phone")?data.getString("phone"):null
 		String key = data.has("verify_key")?data.getString("verify_key"):null
 
 		if(!code) {
@@ -114,29 +123,26 @@ class UsersController {
 			return render (status: 400, contentType:"application/json") { ["error": "Key not set"] }
 		}
 
-		JSONObject resp = phoneService.verifySMSCode(code, key)
+		try {
+			if(phoneService.verifySMSCode(phone, code, key)) {
+				def authenticatedUser = springSecurityService.loadCurrentUser()
+				if(!userService.setPhone(authenticatedUser.id, phone)) {
+					return render (status: 500, contentType:"application/json") { ["error": "Could not update user's phone number."] }
+				}
 
-		log.debug(resp)
-
-		if(!resp) {
-			return render (status: 500, contentType:"application/json") { ["error": "Could not verify code. Please try again later."] }
+				def userInfo = userService.getUserInfo(authenticatedUser.id)
+				render (status: 200, contentType:"application/json") {
+					[
+						"user_info": userInfo
+					]
+				}
+			}
+			else {
+				return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
+			}
 		}
-
-		if(!resp.has("verified") || !resp.getBoolean("verified") || !resp.has("tel")) {
-			return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
-		}
-
-		def authenticatedUser = springSecurityService.loadCurrentUser()
-		if(!userService.setPhone(authenticatedUser.id, resp.getString("tel"))) {
-			return render (status: 500, contentType:"application/json") { ["error": "Could not update phone number."] }
-		}
-
-		def userInfo = userService.getUserInfo(authenticatedUser.id)
-
-		render (status: 200, contentType:"application/json") {
-			[
-				"user_info": userInfo
-			]
+		catch(e) {
+			return render (status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}
 
@@ -146,6 +152,7 @@ class UsersController {
 		JSONObject data = request.JSON
 
 		String code = data.has("code")?data.getString("code"):null
+		String phone = data.has("phone")?data.getString("phone"):null
 		String key = data.has("verify_key")?data.getString("verify_key"):null
 
 		if(!code) {
@@ -156,35 +163,26 @@ class UsersController {
 			return render (status: 400, contentType:"application/json") { ["error": "Key not set"] }
 		}
 
-		JSONObject resp = phoneService.verifySMSCode(code, key)
-
-		log.debug(resp)
-
-		if(!resp) {
-			return render (status: 500, contentType:"application/json") { ["error": "Could not verify code. Please try again later."] }
-		}
-
-		if(!resp.has("verified") || !resp.getBoolean("verified") || !resp.has("tel")) {
-			return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
-		}
-
 		try {
-			User user = loginService.register(resp.getString("tel"))
-			String tokenValue = loginService.loginPhone(user.phone)
+			if(phoneService.verifySMSCode(phone, code, key)) {
+				User user = loginService.register(phone)
+				String tokenValue = loginService.loginPhone(user.phone)
 
-			def userInfo = userService.getUserInfo(user.id)
+				def userInfo = userService.getUserInfo(user.id)
 
-			render (status: 200, contentType:"application/json") {
-				[
-					"user_info": userInfo,
-					"access_token": tokenValue
-				]
+				render (status: 200, contentType:"application/json") {
+					[
+						"user_info": userInfo,
+						"access_token": tokenValue
+					]
+				}
+			}
+			else {
+				return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
 			}
 		}
 		catch(e) {
-			render (status: 200, contentType:"application/json") {
-				["error": e.message]
-			}
+			return render (status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}
 

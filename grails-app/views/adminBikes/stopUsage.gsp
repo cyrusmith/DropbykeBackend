@@ -84,7 +84,7 @@
 				<div class="form-group">
 					<label for="stopAddress">Stop address</label>
 					<g:textField class="form-control" name="stopAddress"
-						id="stopAddress" value="${ride.stopAddress}" />
+						data-location-address="" id="stopAddress" value="${ride.stopAddress}" />
 				</div>
 
 				<div class="row location-selector">
@@ -133,11 +133,6 @@
 		</div>
 
 
-		<div class="form-group">
-			<label for="lockPassword">Lock password</label>
-			<g:textField class="form-control" name="lockPassword"
-				id="lockPassword" value="${bike.lockPassword}" />
-		</div>
 		<div class="form-group">
 			<label for="message">Message from last user</label>
 			<g:textArea class="form-control" name="message" id="message"

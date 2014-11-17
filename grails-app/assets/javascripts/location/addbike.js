@@ -15,6 +15,7 @@
 					this.mapContainer = this.$('.modal .modal-body');
 					this.lat = this.$('input[data-location-lat]');
 					this.lon = this.$('input[data-location-lng]');
+					this.address = this.$('input[data-location-address]');
 					this.latLon = null;
 				},
 
@@ -23,6 +24,7 @@
 						this.lat.val(this.latLon.lat())
 						this.lon.val(this.latLon.lng());
 						this.marker.setMap(null);
+						this.updateAddress();
 						this.latLon = null;
 					}
 					this.modal.modal('hide');
@@ -92,6 +94,24 @@
 							}, this));
 					
 					
+				},
+				
+				updateAddress: function() {
+					
+					if(!this.latLon) return;
+					
+					var geocoder = new google.maps.Geocoder();
+					geocoder.geocode({'latLng': this.latLon}, function(results, status) {
+					    if (status == google.maps.GeocoderStatus.OK) {
+					      if (results[0]) {
+					    	  this.address.val(results[0].formatted_address);
+					      } else {
+					        alert('No address found');
+					      }
+					    } else {
+					      alert('Getting address failed due to: ' + status);
+					    }
+					  }.bind(this));
 				},
 
 				checkMapLoaded : function() {

@@ -124,7 +124,7 @@
 					<div class="form-group">
 						<label for="address">Address</label>
 						<g:textField class="form-control" name="address" id="address"
-							value="${address}" />
+							data-location-address="" value="${address}" />
 					</div>
 					<div class="row location-selector">
 						<div class="col-xs-3">
