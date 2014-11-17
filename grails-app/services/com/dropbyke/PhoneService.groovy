@@ -32,7 +32,7 @@ class PhoneService {
 		}
 	}
 
-	private String sendSMSRingcaptcha(phone) {
+	private String sendSMSRingcaptcha(phone) throws Exception {
 
 		try {
 			def apiKey = grailsApplication.config.com.dropbyke.ringcaptcha.apiKey
@@ -66,11 +66,16 @@ class PhoneService {
 			}
 
 			JSONObject json = new JSONObject(stringBuilder.toString());
-			//{"status":"SUCCESS","token":"5dd9dc53128095b68a49c72453c946c25fec8c08","id":"f9bdf79d026cacc0138c1f207e8e6fcaba6ab49a","phone":"+79511247616","country":"RU","service":"SMS","attempt":1,"pcp":"Localhost,15,4","retry_in":"60","expires_in":900}
+
 			if(!json || !json.has("status")) {
 				throw new Exception("Failed to get response")
 			}
-
+			
+			if(json.getString("status") == "ERROR" && json.getString("message")=="ERROR_WAIT_TO_RETRY") {
+				log.error "Need to wait a while"
+				throw new Exception("Please wait about a minute and try again")
+			}
+			
 			if(!json.has("token")  || !json.getString("token")) {
 				throw new Exception("Failed to get verification key")
 			}
@@ -88,7 +93,7 @@ class PhoneService {
 		}
 	}
 
-	private boolean verifySMSRingcaptcha(String phone, String code, String requestKey) {
+	private boolean verifySMSRingcaptcha(String phone, String code, String requestKey) throws Exception {
 		try {
 
 			def apiKey = grailsApplication.config.com.dropbyke.ringcaptcha.apiKey
@@ -126,8 +131,6 @@ class PhoneService {
 
 			JSONObject json = new JSONObject(stringBuilder.toString());
 
-			//{"status":"SUCCESS","id":"c9d735fecd647c8e24a3bad609a71453ea62544f","token":"5dd9dc53128095b68a49c72453c946c25fec8c08","phone":"+79511247616","dialing_code":"7","country":"RU","service":"SMS","geolocation":0}
-
 			if(!json || !json.has("status")) {
 				throw new Exception("Failed to receive verification response")
 			}
@@ -148,7 +151,7 @@ class PhoneService {
 		}
 	}
 
-	private String sendSMSGetprove(String phone) {
+	private String sendSMSGetprove(String phone) throws Exception {
 		try {
 
 			CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
@@ -202,7 +205,7 @@ class PhoneService {
 		}
 	}
 
-	private boolean verifySMSGetprove(String phone, String code, String requestKey) {
+	private boolean verifySMSGetprove(String phone, String code, String requestKey) throws Exception {
 		try {
 
 			CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
@@ -259,7 +262,7 @@ class PhoneService {
 		}
 	}
 
-	def sendSMS(phone) {
+	def sendSMS(phone) throws Exception {
 
 		log.debug "sendSMS to " + phone + " with " + grailsApplication.config.com.dropbyke.smsService
 
@@ -274,7 +277,7 @@ class PhoneService {
 		}
 	}
 
-	def verifySMSCode(String phone, String code, String verificationId) {
+	def verifySMSCode(String phone, String code, String verificationId) throws Exception {
 
 		if(log.isDebugEnabled()) {
 			log.debug "verifySMSCode to " + code

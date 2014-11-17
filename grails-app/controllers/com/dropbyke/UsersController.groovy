@@ -97,10 +97,11 @@ class UsersController {
 				return render (status: 200, contentType:"application/json") { ["request_key": key] }
 			}
 			else {
-				error = "Coul not get response from SMS service"
+				error = "Could not get response from SMS service"
 			}
 		}
-		catch(e) {
+		catch(Exception e) {
+			println e.message
 			error = e.message
 		}
 
