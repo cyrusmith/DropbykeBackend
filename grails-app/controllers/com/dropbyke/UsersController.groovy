@@ -168,9 +168,7 @@ class UsersController {
 			if(phoneService.verifySMSCode(phone, code, key)) {
 				User user = loginService.register(phone)
 				String tokenValue = loginService.loginPhone(user.phone)
-
 				def userInfo = userService.getUserInfo(user.id)
-
 				render (status: 200, contentType:"application/json") {
 					[
 						"user_info": userInfo,
@@ -183,6 +181,8 @@ class UsersController {
 			}
 		}
 		catch(e) {
+			log.error e.getClass()
+			log.error e.message
 			return render (status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}

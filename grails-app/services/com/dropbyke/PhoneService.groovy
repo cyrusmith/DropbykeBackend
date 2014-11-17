@@ -72,8 +72,23 @@ class PhoneService {
 			}
 			
 			if(json.getString("status") == "ERROR" && json.getString("message")=="ERROR_WAIT_TO_RETRY") {
+				
 				log.error "Need to wait a while"
+				
+				if(json.has("retry_in")) {
+					int minutes = Math.ceil(json.getInt("retry_in")/60.0)
+					log.error "Need to wait ${minutes} minutes"
+					if(!minutes) {
+						minutes = 1
+						throw new Exception("Please wait about a minute and try again")
+					}
+					throw new Exception("Please wait about ${minutes} minutes and try again")
+				}
+				
 				throw new Exception("Please wait about a minute and try again")
+				
+				
+				
 			}
 			
 			if(!json.has("token")  || !json.getString("token")) {
@@ -262,9 +277,11 @@ class PhoneService {
 		}
 	}
 
-	def sendSMS(phone) throws Exception {
-
-		log.debug "sendSMS to " + phone + " with " + grailsApplication.config.com.dropbyke.smsService
+	String sendSMS(phone) throws Exception {
+		
+		if(log.isDebugEnabled()) {
+			log.debug "sendSMS to " + phone + " with " + grailsApplication.config.com.dropbyke.smsService
+		}
 
 		if(grailsApplication.config.com.dropbyke.smsService == "ringcaptcha") {
 			return this.sendSMSRingcaptcha(phone)
@@ -277,8 +294,8 @@ class PhoneService {
 		}
 	}
 
-	def verifySMSCode(String phone, String code, String verificationId) throws Exception {
-
+	boolean verifySMSCode(String phone, String code, String verificationId) throws Exception {
+		
 		if(log.isDebugEnabled()) {
 			log.debug "verifySMSCode to " + code
 		}
