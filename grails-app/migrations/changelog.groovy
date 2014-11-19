@@ -1,6 +1,6 @@
 databaseChangeLog = {
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-1") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-1") {
 		createTable(tableName: "authentication_token") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "authenticatioPK")
@@ -20,7 +20,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-2") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-2") {
 		createTable(tableName: "bike") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "bikePK")
@@ -84,7 +84,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-3") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-3") {
 		createTable(tableName: "bike_rating") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "bike_ratingPK")
@@ -112,7 +112,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-4") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-4") {
 		createTable(tableName: "card") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "cardPK")
@@ -148,7 +148,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-5") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-5") {
 		createTable(tableName: "charge") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "chargePK")
@@ -184,7 +184,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-6") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-6") {
 		createTable(tableName: "path") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "pathPK")
@@ -200,7 +200,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-7") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-7") {
 		createTable(tableName: "ride") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "ridePK")
@@ -272,7 +272,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-8") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-8") {
 		createTable(tableName: "role") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "rolePK")
@@ -288,7 +288,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-9") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-9") {
 		createTable(tableName: "user") {
 			column(autoIncrement: "true", name: "id", type: "bigint") {
 				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "userPK")
@@ -352,7 +352,7 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-10") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-10") {
 		createTable(tableName: "user_role") {
 			column(name: "role_id", type: "bigint") {
 				constraints(nullable: "false")
@@ -364,135 +364,137 @@ databaseChangeLog = {
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-11") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-11") {
 		addPrimaryKey(columnNames: "role_id, user_id", constraintName: "user_rolePK", tableName: "user_role")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-23") {
-		createIndex(indexName: "sku_uniq_1416378297430", tableName: "bike", unique: "true") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-23") {
+		createIndex(indexName: "sku_uniq_1416378990906", tableName: "bike", unique: "true") {
 			column(name: "sku")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-24") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-24") {
 		createIndex(indexName: "FK_6mrke3a0kbaxjte756fhm92sn", tableName: "bike_rating") {
 			column(name: "user_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-25") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-25") {
 		createIndex(indexName: "FK_dsvbu4oumu91oxeuhyqk7bbm5", tableName: "bike_rating") {
 			column(name: "ride_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-26") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-26") {
 		createIndex(indexName: "FK_vqw20n58bscajx7hs67dpvk7", tableName: "bike_rating") {
 			column(name: "bike_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-27") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-27") {
 		createIndex(indexName: "FK_bghvg4xo76su71a9k40s0rplq", tableName: "card") {
 			column(name: "user_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-28") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-28") {
 		createIndex(indexName: "FK_9pfivyijy30fny2qnw1gta91c", tableName: "charge") {
 			column(name: "ride_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-29") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-29") {
 		createIndex(indexName: "FK_rf4luejj74eh02aan6lsfh8a6", tableName: "charge") {
 			column(name: "user_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-30") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-30") {
 		createIndex(indexName: "FK_h7ptnjsr8ltpe5n7xdcobnyg3", tableName: "path") {
 			column(name: "ride_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-31") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-31") {
 		createIndex(indexName: "FK_6monxh6jdvoxv45pepuj2xu2f", tableName: "ride") {
 			column(name: "bike_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-32") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-32") {
 		createIndex(indexName: "FK_t1j9pjna87g6lq08ng7w96d4j", tableName: "ride") {
 			column(name: "user_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-33") {
-		createIndex(indexName: "authority_uniq_1416378297450", tableName: "role", unique: "true") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-33") {
+		createIndex(indexName: "authority_uniq_1416378990926", tableName: "role", unique: "true") {
 			column(name: "authority")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-34") {
-		createIndex(indexName: "username_uniq_1416378297460", tableName: "user", unique: "true") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-34") {
+		createIndex(indexName: "username_uniq_1416378990936", tableName: "user", unique: "true") {
 			column(name: "username")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-35") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-35") {
 		createIndex(indexName: "FK_apcc8lxk2xnug8377fatvbn04", tableName: "user_role") {
 			column(name: "user_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-36") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-36") {
 		createIndex(indexName: "FK_it77eq964jhfqtu54081ebtio", tableName: "user_role") {
 			column(name: "role_id")
 		}
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-12") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-12") {
 		addForeignKeyConstraint(baseColumnNames: "bike_id", baseTableName: "bike_rating", constraintName: "FK_vqw20n58bscajx7hs67dpvk7", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "bike", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-13") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-13") {
 		addForeignKeyConstraint(baseColumnNames: "ride_id", baseTableName: "bike_rating", constraintName: "FK_dsvbu4oumu91oxeuhyqk7bbm5", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "ride", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-14") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-14") {
 		addForeignKeyConstraint(baseColumnNames: "user_id", baseTableName: "bike_rating", constraintName: "FK_6mrke3a0kbaxjte756fhm92sn", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "user", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-15") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-15") {
 		addForeignKeyConstraint(baseColumnNames: "user_id", baseTableName: "card", constraintName: "FK_bghvg4xo76su71a9k40s0rplq", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "user", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-16") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-16") {
 		addForeignKeyConstraint(baseColumnNames: "ride_id", baseTableName: "charge", constraintName: "FK_9pfivyijy30fny2qnw1gta91c", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "ride", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-17") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-17") {
 		addForeignKeyConstraint(baseColumnNames: "user_id", baseTableName: "charge", constraintName: "FK_rf4luejj74eh02aan6lsfh8a6", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "user", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-18") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-18") {
 		addForeignKeyConstraint(baseColumnNames: "ride_id", baseTableName: "path", constraintName: "FK_h7ptnjsr8ltpe5n7xdcobnyg3", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "ride", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-19") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-19") {
 		addForeignKeyConstraint(baseColumnNames: "bike_id", baseTableName: "ride", constraintName: "FK_6monxh6jdvoxv45pepuj2xu2f", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "bike", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-20") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-20") {
 		addForeignKeyConstraint(baseColumnNames: "user_id", baseTableName: "ride", constraintName: "FK_t1j9pjna87g6lq08ng7w96d4j", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "user", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-21") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-21") {
 		addForeignKeyConstraint(baseColumnNames: "role_id", baseTableName: "user_role", constraintName: "FK_it77eq964jhfqtu54081ebtio", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "role", referencesUniqueColumn: "false")
 	}
 
-	changeSet(author: "cyrusmith (generated)", id: "1416378297530-22") {
+	changeSet(author: "cyrusmith (generated)", id: "1416378991016-22") {
 		addForeignKeyConstraint(baseColumnNames: "user_id", baseTableName: "user_role", constraintName: "FK_apcc8lxk2xnug8377fatvbn04", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "user", referencesUniqueColumn: "false")
 	}
+
+	include file: '2014.19.11.groovy'
 }
