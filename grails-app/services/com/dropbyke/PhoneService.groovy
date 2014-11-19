@@ -279,6 +279,10 @@ class PhoneService {
 
 	String sendSMS(phone) throws Exception {
 		
+		if(grailsApplication.config.com.dropbyke.debug) {
+			return "123"
+		}
+		
 		if(log.isDebugEnabled()) {
 			log.debug "sendSMS to " + phone + " with " + grailsApplication.config.com.dropbyke.smsService
 		}
@@ -295,6 +299,10 @@ class PhoneService {
 	}
 
 	boolean verifySMSCode(String phone, String code, String verificationId) throws Exception {
+		
+		if(grailsApplication.config.com.dropbyke.debug) {
+			return true
+		}
 		
 		if(log.isDebugEnabled()) {
 			log.debug "verifySMSCode to " + code
