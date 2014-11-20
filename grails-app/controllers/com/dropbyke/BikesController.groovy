@@ -135,6 +135,36 @@ class BikesController {
 			return render(status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}
+	
+	@Secured(['ROLE_USER'])
+	def myBikes() {
+		
+	}
+	
+	@Secured(['ROLE_USER'])
+	def myBikeInfo() {
+		Bike bike = Bike.get(params.id)
+		if(!bike) {
+			return render(status: 404, contentType:"application/json") { ["error": "Bike not found"] }
+		}
+		return render(status: 200, contentType:"application/json") { ["bike": bike] }
+	}
+	
+	@Secured(['ROLE_USER'])
+	def addBike() {
+		
+	}
+	
+	@Secured(['ROLE_USER'])
+	def editBike() {
+		
+	}
+	
+	@Secured(['ROLE_USER'])
+	def myBikePhoto() {
+		
+	}
+	
 	/**
 	 * Using haversine formula - http://en.wikipedia.org/wiki/Haversine_formula
 	 * @return
