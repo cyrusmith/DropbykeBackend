@@ -17,6 +17,7 @@ class BikesController {
 	def dataSource
 	def bikesService
 	def springSecurityService
+	def bikeShareService
 
 	@Secured(['permitAll'])
 	def bikesInArea() {
@@ -30,9 +31,9 @@ class BikesController {
 		lat2 = ParseUtils.strToNumber(params["lat2"], 0.0)
 		lng1 = ParseUtils.strToNumber(params["lng1"], 0.0)
 		lng2 = ParseUtils.strToNumber(params["lng2"], 0.0)
-		
+
 		System.out.println "bikesInArea" + [lat1, lat2, lng1, lng2]
-			
+
 		def bikes
 		def bc = Bike.createCriteria()
 
@@ -117,30 +118,31 @@ class BikesController {
 			Ride ride = bikesService.startUsage(authenticatedUser.id, bikeId)
 			bike.locked = true
 			bike.save()
-			return render(status: 200, contentType:"application/json") { ["ride": [
-					'id': ride.id,
-					'title': bike.title,
-					'rating': bike.rating,
-					'startTime': ride.startTime,
-					'startLat': bike.lat,
-					'startLng': bike.lng,
-					'price': bike.priceRate,
-					'lockPassword': bike.lockPassword, 
-					'message': bike.messageFromLastUser, 
-					'lastRideId': bike.lastRideId, 
-					'hasPhoto': false 
-				]] }
+			return render(status: 200, contentType:"application/json") {
+				["ride": [
+						'id': ride.id,
+						'title': bike.title,
+						'rating': bike.rating,
+						'startTime': ride.startTime,
+						'startLat': bike.lat,
+						'startLng': bike.lng,
+						'price': bike.priceRate,
+						'lockPassword': bike.lockPassword,
+						'message': bike.messageFromLastUser,
+						'lastRideId': bike.lastRideId,
+						'hasPhoto': false
+					]]
+			}
 		}
 		catch(e) {
 			return render(status: 500, contentType:"application/json") { ["error": e.message] }
 		}
 	}
-	
+
 	@Secured(['ROLE_USER'])
 	def myBikes() {
-		
 	}
-	
+
 	@Secured(['ROLE_USER'])
 	def myBikeInfo() {
 		Bike bike = Bike.get(params.id)
@@ -149,22 +151,66 @@ class BikesController {
 		}
 		return render(status: 200, contentType:"application/json") { ["bike": bike] }
 	}
-	
+
 	@Secured(['ROLE_USER'])
 	def addBike() {
+
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+
+		JSONObject json = request.JSON
+
+		if(!(json.has("active") &&
+		json.has("name") &&
+		json.has("sku") &&
+		json.has("price") &&
+		json.has("lockPassword") &&
+		json.has("address") &&
+		json.has("lat") &&
+		json.has("lng") &&
+		json.has("message"))) {
+			return render(status: 400, contentType:"application/json") { ["error": "Some of fields are not set"] }
+		}
+
+		boolean active = json.getBoolean("active")
+		String name = json.getString("name")
+		String sku = json.getString("sku")
+		int price = json.getInt("price")
+		String lockPassword = json.getLong("lockPassword")
+		String address = json.getLong("address")
+		double lat = json.getLong("lat")
+		double lng = json.getLong("lng")
+		String message = json.getLong("message")
+
+		//check photo
+		//copy photo
 		
+		try {
+			Bike bike = bikeShareService.addBike(sku, name, price, lat, lng, address, lockPassword, message)
+			//remove tmp photo			
+			return render(status: 200, contentType:"application/json") { ["bike": bike] }
+		}
+		catch(IllegalArgumentException e) {
+			return render(status: 400, contentType:"application/json") { ["error": e.message] }
+		}
+		catch(e) {
+			return render(status: 500, contentType:"application/json") { ["error": e.message] }
+		}
+
 	}
-	
+
 	@Secured(['ROLE_USER'])
 	def editBike() {
-		
+
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+
+
 	}
-	
+
 	@Secured(['ROLE_USER'])
 	def myBikePhoto() {
-		
+
 	}
-	
+
 	/**
 	 * Using haversine formula - http://en.wikipedia.org/wiki/Haversine_formula
 	 * @return
