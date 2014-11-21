@@ -1,5 +1,7 @@
 package com.dropbyke
 
+import com.dropbyke.FileUploadService.Folder;
+
 import grails.transaction.Transactional
 import grails.validation.ValidationException;
 
@@ -43,7 +45,7 @@ class RidesService {
 
 		Bike bike = Bike.get(ride.bike.id)
 
-		if(!fileUploadService.checkPhotoExists("/images/rides/", ride.id)) {
+		if(!fileUploadService.checkPhotoExists(Folder.RIDES, ride.id)) {
 			if(!isDebug) {
 				throw new Exception("Illegal state: ride have no photo")
 			}

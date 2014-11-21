@@ -7,6 +7,8 @@ import javax.transaction.Transaction;
 import org.codehaus.groovy.grails.web.json.JSONObject;
 import org.hibernate.criterion.CriteriaSpecification;
 
+import com.dropbyke.FileUploadService.Folder;
+
 import grails.plugin.springsecurity.annotation.Secured;
 import grails.transaction.Transactional;
 import groovy.sql.Sql
@@ -18,6 +20,7 @@ class BikesController {
 	def bikesService
 	def springSecurityService
 	def bikeShareService
+	def fileUploadService
 
 	@Secured(['permitAll'])
 	def bikesInArea() {
@@ -183,10 +186,10 @@ class BikesController {
 
 		//check photo
 		//copy photo
-		
+
 		try {
 			Bike bike = bikeShareService.addBike(sku, name, price, lat, lng, address, lockPassword, message)
-			//remove tmp photo			
+			//remove tmp photo
 			return render(status: 200, contentType:"application/json") { ["bike": bike] }
 		}
 		catch(IllegalArgumentException e) {
@@ -200,15 +203,47 @@ class BikesController {
 
 	@Secured(['ROLE_USER'])
 	def editBike() {
-
 		def authenticatedUser = springSecurityService.loadCurrentUser()
-
 
 	}
 
 	@Secured(['ROLE_USER'])
 	def myBikePhoto() {
 
+		def authenticatedUser = springSecurityService.loadCurrentUser()
+
+		def photo = request.getFile("photo")
+
+		if(!photo || photo.isEmpty()) {
+			return render(status: 400, contentType:"application/json") { ["error": "Photo not set"] }
+		}
+
+		if(params.id) {
+
+			Bike bike = Bike.get(params.id)
+			if(!bike) {
+				return render(status: 404, contentType:"application/json") { ["error": "Bike not found"] }
+			}
+
+			if(bike.user.id != authenticatedUser.id) {
+				return render(status: 404, contentType:"application/json") { ["error": "Bike not found for current user"] }
+			}
+
+			try {
+				if(fileUploadService.savePhoto(photo, Folder.BIKES, params.id)) {
+					return render(status: 200, contentType:"application/json") { }
+				}
+				else {
+					return render(status: 500, contentType:"application/json") { ["error": "Failed to save photo"] }
+				}
+			}
+			catch(e) {
+				return render(status: 500, contentType:"application/json") { ["error": e.message] }
+			}
+
+		}
+		else { //tmp for new
+		}
 	}
 
 	/**

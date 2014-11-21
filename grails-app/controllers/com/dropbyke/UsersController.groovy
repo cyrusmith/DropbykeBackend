@@ -6,6 +6,7 @@ import groovy.util.logging.Log4j;
 
 import org.codehaus.groovy.grails.web.json.JSONObject
 
+import com.dropbyke.FileUploadService.Folder;
 import com.odobo.grails.plugin.springsecurity.rest.token.generation.TokenGenerator;
 import com.odobo.grails.plugin.springsecurity.rest.token.storage.TokenStorageService;
 
@@ -46,7 +47,7 @@ class UsersController {
 				return render (status: 500, contentType:"application/json") { ["error": "Failed register new user"] }
 			}
 
-			if(!fileUploadService.checkPhotoExists("/images/users", user.id)) {
+			if(!fileUploadService.checkPhotoExists(Folder.USERS, user.id)) {
 
 				try {
 					facebookService.downloadPhoto(user.id, token)
@@ -196,7 +197,7 @@ class UsersController {
 
 		boolean hasPhoto = false
 		if(info.ride) {
-			hasPhoto = fileUploadService.checkPhotoExists("/images/rides", info.ride.id)
+			hasPhoto = fileUploadService.checkPhotoExists(Folder.RIDES, info.ride.id)
 		}
 
 		grails.converters.JSON.registerObjectMarshaller(Bike, { Bike bike ->
@@ -306,7 +307,7 @@ class UsersController {
 		System.out.println photo
 		if(photo && !photo.isEmpty()) {
 			try {
-				fileUploadService.savePhoto(photo, "/images/users/", authenticatedUser.id)
+				fileUploadService.savePhoto(photo, Folder.USERS, authenticatedUser.id)
 				return render (status: 200, contentType:"application/json") {
 				}
 			}

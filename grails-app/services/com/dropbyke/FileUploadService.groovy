@@ -21,7 +21,22 @@ class FileUploadService {
 		'image/gif'
 	]
 
-	def savePhoto(MultipartFile file, String folder, long id) {
+	public enum Folder {
+
+		BIKES("/images/bikes"),
+		RIDES("/images/rides"),
+		USERS("/images/rides")
+
+		Folder(String path) {
+			this.path = path
+		}
+		private final String path
+		public String path() {
+			return path
+		}
+	}
+
+	def savePhoto(MultipartFile file, Folder folder, long id) {
 
 		if(!id) {
 			log.error("Bike image id not set")
@@ -34,7 +49,7 @@ class FileUploadService {
 
 		def servletContext = ServletContextHolder.servletContext
 
-		String path = servletContext.getRealPath(folder);
+		String path = servletContext.getRealPath(folder.path());
 		File bikesPath = new File(path)
 		if(!bikesPath.exists()) {
 			if(!bikesPath.mkdirs()) {
@@ -85,9 +100,9 @@ class FileUploadService {
 		}
 	}
 
-	def checkPhotoExists(String folder, long id) {
+	def checkPhotoExists(Folder folder, long id) {
 		def servletContext = ServletContextHolder.servletContext
-		String path = servletContext.getRealPath(folder);
+		String path = servletContext.getRealPath(folder.path());
 		File imageFile = new File(path + "/" + id +'.jpg')
 		return imageFile.exists()
 	}

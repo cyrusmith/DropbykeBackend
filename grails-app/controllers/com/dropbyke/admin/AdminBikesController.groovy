@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import com.dropbyke.Bike;
+import com.dropbyke.FileUploadService.Folder;
 import com.dropbyke.ParseUtils;
 import com.dropbyke.Ride;
 import com.dropbyke.User;
@@ -37,7 +38,7 @@ class AdminBikesController {
 					return response.sendError(404)
 				}
 				
-				isHasImage = fileUploadService.checkPhotoExists("/images/bikes/", bike.id)
+				isHasImage = fileUploadService.checkPhotoExists(Folder.BIKES, bike.id)
 				
 				return render(view:'edit', model: [
 					id:bike.id,
@@ -151,7 +152,7 @@ class AdminBikesController {
 
 			if(photo && !photo.isEmpty()) {
 				try {
-					fileUploadService.savePhoto(photo, "/images/bikes/", bike.id)
+					fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)
 					flash.message = "Bike " + params.title + " successfully saved"
 					redirect(action: "index")
 				}
@@ -228,7 +229,7 @@ class AdminBikesController {
 		def photo = request.getFile('photo')
 		if(photo && !photo.isEmpty()) {
 			try {
-				fileUploadService.savePhoto(photo, "/images/rides/", ride.id)
+				fileUploadService.savePhoto(photo, Folder.RIDES, ride.id)
 			}
 			catch(e) {
 				errors.add "Could not save photo" + e.message

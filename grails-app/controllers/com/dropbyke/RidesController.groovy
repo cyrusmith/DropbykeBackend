@@ -88,7 +88,7 @@ class RidesController {
 
 		if(photo && !photo.isEmpty()) {
 			try {
-				fileUploadService.savePhoto(photo, "/images/rides/", ride.id)
+				fileUploadService.savePhoto(photo, Folder.RIDES, ride.id)
 				return render (status: 200, contentType:"application/json") {}
 			}
 			catch(e) {
