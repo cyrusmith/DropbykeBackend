@@ -19,7 +19,7 @@ class Bike {
 	
 	boolean locked = false
 
-	boolean active = true
+	boolean active = false
 
 	static constraints = {
 		sku blank: false, unique: true

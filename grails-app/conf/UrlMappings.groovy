@@ -22,14 +22,13 @@ class UrlMappings {
 		"/api/profile/"(controller: "users", action: "viewProfile", method: "GET")
 		"/api/profile/"(controller: "users", action: "updateProfile", method: "POST")
 
-		"/api/share/bikes/"(controller: "bikes", action: "myBikes", method: "GET")
-		"/api/share/bikes/"(controller: "bikes", action: "addBike", method: "POST")
-		"/api/share/bikes/"(controller: "bikes", action: "editBike", method: "PUT")
-		"/api/share/bike/$id"(controller: "bikes", action: "myBikeInfo", method: "GET")
-		"/api/share/bike/uploadphoto"(controller: "bikes", action: "myBikePhoto", method: "POST")
+		"/api/share/bikes/"(controller: "bikes", action: "bikesList", method: "GET") //list of bikes
+		"/api/share/bikes/"(controller: "bikes", action: "saveBike", method: "POST") //add new bike
+		"/api/share/bike/$id"(controller: "bikes", action: "bikeInfo", method: "GET")
+		"/api/share/bike/$id/userphoto"(controller: "bikes", action: "addUserPhoto", method: "POST")
 
 		"/admin/$controller/$action?/$id?(.$format)?"{ constraints { // apply constraints here
-			} }
+			}  }
 
 		"/"(view:"/index")
 		"500"(view:'/error')

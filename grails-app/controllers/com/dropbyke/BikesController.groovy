@@ -6,6 +6,7 @@ import javax.transaction.Transaction;
 
 import org.codehaus.groovy.grails.web.json.JSONObject;
 import org.hibernate.criterion.CriteriaSpecification;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.dropbyke.FileUploadService.Folder;
 
@@ -143,11 +144,11 @@ class BikesController {
 	}
 
 	@Secured(['ROLE_USER'])
-	def myBikes() {
+	def bikesList() {
 	}
 
 	@Secured(['ROLE_USER'])
-	def myBikeInfo() {
+	def bikeInfo() {
 		Bike bike = Bike.get(params.id)
 		if(!bike) {
 			return render(status: 404, contentType:"application/json") { ["error": "Bike not found"] }
@@ -156,41 +157,89 @@ class BikesController {
 	}
 
 	@Secured(['ROLE_USER'])
-	def addBike() {
+	def saveBike() {
 
-		def authenticatedUser = springSecurityService.loadCurrentUser()
+		def authUser = springSecurityService.loadCurrentUser()
 
 		JSONObject json = request.JSON
 
-		if(!(json.has("active") &&
-		json.has("name") &&
-		json.has("sku") &&
-		json.has("price") &&
-		json.has("lockPassword") &&
-		json.has("address") &&
-		json.has("lat") &&
-		json.has("lng") &&
-		json.has("message"))) {
-			return render(status: 400, contentType:"application/json") { ["error": "Some of fields are not set"] }
+		println "saveBike json " + json
+		println "saveBike params " + params
+
+		boolean active
+		String name
+		String sku
+		int price
+		String lockPassword
+		String address
+		double lat
+		double lng
+		String message
+
+		if(!json.isEmpty()) {
+			if(!(json.has("active") &&
+			json.has("title") &&
+			json.has("sku") &&
+			json.has("priceRate") &&
+			json.has("lockPassword") &&
+			json.has("address") &&
+			json.has("lat") &&
+			json.has("lng") &&
+			json.has("messageFromLastUser"))) {
+				return render(status: 400, contentType:"application/json") { ["error": "Some fields are not set"] }
+			}
+
+			active = json.getBoolean("active")
+			name = json.getString("title")
+			sku = json.getString("sku")
+			price = json.getInt("priceRate")
+			lockPassword = json.getLong("lockPassword")
+			address = json.getString("address")
+			lat = json.getLong("lat")
+			lng = json.getLong("lng")
+			message = json.getString("messageFromLastUser")
+		}
+		else {
+			if(!(params.containsKey("active") &&
+			params.containsKey("title") &&
+			params.containsKey("sku") &&
+			params.containsKey("priceRate") &&
+			params.containsKey("lockPassword") &&
+			params.containsKey("address") &&
+			params.containsKey("lat") &&
+			params.containsKey("lng") &&
+			params.containsKey("messageFromLastUser"))) {
+				return render(status: 400, contentType:"application/json") { ["error": "Some fields are not set"] }
+			}
+
+			active = params["active"] && true
+			name = params["title"]
+			sku = params["sku"]
+			price = ParseUtils.strToInt(params["priceRate"])
+			lockPassword = params["lockPassword"]
+			address = params["address"]
+			lat = ParseUtils.strToLong(params["lat"])
+			lng = ParseUtils.strToLong(params["lng"])
+			message = params["messageFromLastUser"]
 		}
 
-		boolean active = json.getBoolean("active")
-		String name = json.getString("name")
-		String sku = json.getString("sku")
-		int price = json.getInt("price")
-		String lockPassword = json.getLong("lockPassword")
-		String address = json.getLong("address")
-		double lat = json.getLong("lat")
-		double lng = json.getLong("lng")
-		String message = json.getLong("message")
+		MultipartFile photo = request.getFile("photo")
 
-		//check photo
-		//copy photo
+		if(!photo || photo.isEmpty()) {
+			return render(status: 400, contentType:"application/json") { ["error": "Photo not set"] }
+		}
 
 		try {
 			Bike bike = bikeShareService.addBike(sku, name, price, lat, lng, address, lockPassword, message)
-			//remove tmp photo
-			return render(status: 200, contentType:"application/json") { ["bike": bike] }
+			if(fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
+				if(bikeShareService.setUserBikeActive(bike.id, authUser.id, active)) {
+					return render(status: 500, contentType:"application/json") { ["error": "Bike saved but failed to set active status"] }
+				}
+				return render(status: 200, contentType:"application/json") { ["bike": bike] }
+			}
+			else {
+				return render(status: 500, contentType:"application/json") { ["error": "Failed to save photo"] }
+			}
 		}
 		catch(IllegalArgumentException e) {
 			return render(status: 400, contentType:"application/json") { ["error": e.message] }
@@ -198,17 +247,12 @@ class BikesController {
 		catch(e) {
 			return render(status: 500, contentType:"application/json") { ["error": e.message] }
 		}
-
 	}
 
 	@Secured(['ROLE_USER'])
-	def editBike() {
-		def authenticatedUser = springSecurityService.loadCurrentUser()
+	def addUserPhoto() {
 
-	}
-
-	@Secured(['ROLE_USER'])
-	def myBikePhoto() {
+		//TODO
 
 		def authenticatedUser = springSecurityService.loadCurrentUser()
 
