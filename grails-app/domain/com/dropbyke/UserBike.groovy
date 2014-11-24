@@ -24,9 +24,9 @@ class UserBike implements Serializable {
 		if (bike) builder.append(bike.id)
 		builder.toHashCode()
 	}
-	
-	static UserBike create(User user, Bike bike, boolean flush = false) {
-		def instance = new UserBike(user: user, bike: bike)
+
+	static UserBike create(User user, Bike bike, boolean active = false, boolean flush = false) {
+		def instance = new UserBike(user: user, bike: bike, active: active)
 		instance.save(flush: flush, insert: true)
 		instance
 	}

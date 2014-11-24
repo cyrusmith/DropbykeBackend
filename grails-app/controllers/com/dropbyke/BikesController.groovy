@@ -195,8 +195,8 @@ class BikesController {
 			price = json.getInt("priceRate")
 			lockPassword = json.getLong("lockPassword")
 			address = json.getString("address")
-			lat = json.getLong("lat")
-			lng = json.getLong("lng")
+			lat = ParseUtils.strToNumber(json.get("lat"))
+			lng = ParseUtils.strToNumber(json.get("lng"))
 			message = json.getString("messageFromLastUser")
 		}
 		else {
@@ -218,34 +218,36 @@ class BikesController {
 			price = ParseUtils.strToInt(params["priceRate"])
 			lockPassword = params["lockPassword"]
 			address = params["address"]
-			lat = ParseUtils.strToLong(params["lat"])
-			lng = ParseUtils.strToLong(params["lng"])
+			lat = ParseUtils.strToNumber(params["lat"])
+			lng = ParseUtils.strToNumber(params["lng"])
 			message = params["messageFromLastUser"]
 		}
 
 		MultipartFile photo = request.getFile("photo")
 
-		if(!photo || photo.isEmpty()) {
+		if(!photo || photo.isEmpty() || !fileUploadService.validatePhoto(photo)) {
 			return render(status: 400, contentType:"application/json") { ["error": "Photo not set"] }
 		}
 
 		try {
-			Bike bike = bikeShareService.addBike(sku, name, price, lat, lng, address, lockPassword, message)
-			if(fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
-				if(bikeShareService.setUserBikeActive(bike.id, authUser.id, active)) {
-					return render(status: 500, contentType:"application/json") { ["error": "Bike saved but failed to set active status"] }
-				}
-				return render(status: 200, contentType:"application/json") { ["bike": bike] }
+			Bike bike = bikeShareService.addBike(authUser.id, sku, name, price, lat, lng, address, lockPassword, message, active)
+			if(!fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
+				bikeShareService.setUserBikeActive(bike.id, authUser.id, false)
+				return render(status: 500, contentType:"application/json") { ["error": "Failed to save image"] }
 			}
 			else {
-				return render(status: 500, contentType:"application/json") { ["error": "Failed to save photo"] }
+				return render(status: 200, contentType:"application/json") {[ "bike": bike ]}
 			}
 		}
 		catch(IllegalArgumentException e) {
-			return render(status: 400, contentType:"application/json") { ["error": e.message] }
+			return render(status: 400, contentType:"application/json") {
+				["error": e.message]
+			}
 		}
 		catch(e) {
-			return render(status: 500, contentType:"application/json") { ["error": e.message] }
+			return render(status: 500, contentType:"application/json") {
+				["error": e.message]
+			}
 		}
 	}
 

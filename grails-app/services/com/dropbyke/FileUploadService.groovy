@@ -36,6 +36,13 @@ class FileUploadService {
 		}
 	}
 
+	def validatePhoto(MultipartFile file) {
+		if (!okcontents.contains(file.getContentType())) {
+			return false
+		}
+		return true
+	}
+
 	def savePhoto(MultipartFile file, Folder folder, long id) {
 
 		if(!id) {
@@ -43,7 +50,7 @@ class FileUploadService {
 			return false
 		}
 
-		if (!okcontents.contains(file.getContentType())) {
+		if (!validatePhoto(file)) {
 			throw new IllegalArgumentException("Avatar must be one of: ${okcontents}")
 		}
 
