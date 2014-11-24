@@ -200,23 +200,6 @@ class UsersController {
 			hasPhoto = fileUploadService.checkPhotoExists(Folder.RIDES, info.ride.id)
 		}
 
-		grails.converters.JSON.registerObjectMarshaller(Bike, { Bike bike ->
-			return [
-				id : bike.id,
-				sku : bike.sku,
-				title : bike.title,
-				rating : bike.rating,
-				priceRate : bike.priceRate,
-				lat: bike.lat,
-				lng: bike.lng,
-				address: bike.address,
-				lockPassword: bike.lockPassword,
-				messageFromLastUser: bike.messageFromLastUser ? bike.messageFromLastUser : null,
-				lastRideId: bike.lastRideId,
-				lastUserPhone: bike.lastUserPhone
-			]
-		})
-
 		grails.converters.JSON.registerObjectMarshaller(Ride, { Ride ride ->
 			return [
 				id : ride.id,
@@ -234,16 +217,6 @@ class UsersController {
 				stopTime: ride.stopTime,
 				sum: ride.sum,
 				hasPhoto: hasPhoto
-			]
-		})
-
-		grails.converters.JSON.registerObjectMarshaller(Card, { Card card ->
-			return [
-				id : card.id,
-				number : card.number,
-				expire : card.expire,
-				name : card.name,
-				cvc : card.cvc,
 			]
 		})
 

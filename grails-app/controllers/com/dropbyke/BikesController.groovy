@@ -23,8 +23,10 @@ class BikesController {
 	def bikeShareService
 	def fileUploadService
 
-	@Secured(['permitAll'])
+	@Secured(['ROLE_USER'])
 	def bikesInArea() {
+
+		def authUser = springSecurityService.loadCurrentUser()
 
 		double lat1 = 0.0
 		double lat2 = 0.0
@@ -45,18 +47,22 @@ class BikesController {
 
 			bikes = bc.list {
 				maxResults(20)
+				ne('user', authUser)
 				gt('lat', lat1)
 				lt('lat', lat2)
 				gt('lng', lng1)
 				lt('lng', lng2)
 				eq('locked', false)
+				eq('active', true)
 			}
 		}
 		else {
 
 			bikes = bc.list {
 				maxResults(20)
+				ne('user', authUser)
 				eq('locked', false)
+				eq('active', true)
 			}
 		}
 
@@ -145,6 +151,25 @@ class BikesController {
 
 	@Secured(['ROLE_USER'])
 	def bikesList() {
+		def authUser = springSecurityService.loadCurrentUser()
+
+		double lat1 = 0.0
+		double lat2 = 0.0
+		double lng1 = 0.0
+		double lng2 = 0.0
+
+		lat1 = ParseUtils.strToNumber(params["lat1"])
+		lat2 = ParseUtils.strToNumber(params["lat2"])
+		lng1 = ParseUtils.strToNumber(params["lng1"])
+		lng2 = ParseUtils.strToNumber(params["lng2"])
+
+		try {
+			List bikes = bikeShareService.userBikesInArea(authUser.id, lat1, lng1, lat2, lng2)
+			return render(status: 200, contentType:"application/json") { ["bikes": bikes] }
+		}
+		catch(e) {
+			return render(status: 500, contentType:"application/json") { ["error": e.message] }
+		}
 	}
 
 	@Secured(['ROLE_USER'])
@@ -162,9 +187,6 @@ class BikesController {
 		def authUser = springSecurityService.loadCurrentUser()
 
 		JSONObject json = request.JSON
-
-		println "saveBike json " + json
-		println "saveBike params " + params
 
 		boolean active
 		String name
@@ -231,12 +253,12 @@ class BikesController {
 
 		try {
 			Bike bike = bikeShareService.addBike(authUser.id, sku, name, price, lat, lng, address, lockPassword, message, active)
-			if(!fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
-				bikeShareService.setUserBikeActive(bike.id, authUser.id, false)
-				return render(status: 500, contentType:"application/json") { ["error": "Failed to save image"] }
+			if(fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
+				bikesService.setActive(bike.id, true)
+				return render(status: 200, contentType:"application/json") {[ "bike": bike ]}
 			}
 			else {
-				return render(status: 200, contentType:"application/json") {[ "bike": bike ]}
+				return render(status: 500, contentType:"application/json") { ["error": "Failed to save image"] }
 			}
 		}
 		catch(IllegalArgumentException e) {

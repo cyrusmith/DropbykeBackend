@@ -1,3 +1,5 @@
+import com.dropbyke.Bike;
+import com.dropbyke.Card;
 import com.dropbyke.Role;
 import com.dropbyke.User;
 import com.dropbyke.UserRole;
@@ -26,6 +28,35 @@ class BootStrap {
 				UserRole.create(user, role)
 			}
 		}
+
+		grails.converters.JSON.registerObjectMarshaller(Bike, { Bike bike ->
+			return [
+				id : bike.id,
+				sku : bike.sku,
+				title : bike.title,
+				rating : bike.rating,
+				priceRate : bike.priceRate,
+				lat: bike.lat,
+				lng: bike.lng,
+				address: bike.address,
+				lockPassword: bike.lockPassword,
+				messageFromLastUser: bike.messageFromLastUser ? bike.messageFromLastUser : null,
+				lastRideId: bike.lastRideId,
+				lastUserPhone: bike.lastUserPhone,
+				active: bike.active,
+				locked: bike.locked
+			]
+		})
+
+		grails.converters.JSON.registerObjectMarshaller(Card, { Card card ->
+			return [
+				id : card.id,
+				number : card.number,
+				expire : card.expire,
+				name : card.name,
+				cvc : card.cvc,
+			]
+		})
 	}
 	def destroy = {
 	}

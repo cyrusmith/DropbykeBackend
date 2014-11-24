@@ -4,7 +4,7 @@ class User {
 
 	transient springSecurityService
 
-	static hasMany = [rides: Ride, cards: Card]
+	static hasMany = [rides: Ride, cards: Card, bikes: Bike]
 	
 	static fetchMode = [cards: 'eager']
 	
@@ -33,7 +33,7 @@ class User {
 		password blank: false
 	}
 
-	static mapping = { password column: '`password`' }
+	static mapping = { password column: '`password`' }	
 
 	Set<Role> getAuthorities() {
 		UserRole.findAllByUser(this).collect { it.role }

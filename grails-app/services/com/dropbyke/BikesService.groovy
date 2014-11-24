@@ -5,6 +5,19 @@ import grails.transaction.Transactional
 @Transactional
 class BikesService {
 
+	def setActive(long bikeId, boolean isActive) throws Exception {
+		Bike bike = Bike.load(bikeId)
+		if(!bike) {
+			return;
+		}
+		bike.active = isActive
+		if(!bike.save()) {
+			def errors = bike.errors.allErrors
+			errors.each {it -> println it}
+			throw new Exception("Failed to save bike status")
+		}
+	}
+
 	def startUsage(long userId, long bikeId) {
 
 		Bike bike = Bike.get(bikeId)
@@ -41,7 +54,7 @@ class BikesService {
 		if(rideAlreadyInProgress && rideAlreadyInProgress.size()) {
 			throw new Exception("You already have ride in progres")
 		}
-		
+
 		def startTime = System.currentTimeMillis();
 
 		Ride ride = new Ride(user: user, bike: bike, startTime: startTime, startLat: bike.lat, startLng: bike.lng, startAddress: bike.address)

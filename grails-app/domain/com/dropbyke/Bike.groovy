@@ -3,7 +3,10 @@ package com.dropbyke
 class Bike {
 
 	static hasMany = [rides: Ride]
-
+	
+	static belongsTo = User
+	User user
+	
 	String sku
 	String title
 	double rating
