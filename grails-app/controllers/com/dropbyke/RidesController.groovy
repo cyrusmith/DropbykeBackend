@@ -4,7 +4,8 @@ import org.codehaus.groovy.grails.web.json.JSONObject;
 
 import grails.plugin.springsecurity.annotation.Secured;
 import grails.transaction.Transactional;
-import grails.validation.ValidationException;
+import grails.validation.ValidationException
+import org.springframework.web.multipart.MultipartFile;
 
 class RidesController {
 
@@ -74,11 +75,11 @@ class RidesController {
 	@Secured('ROLE_USER')
 	def uploadPhoto() {
 
-		def authenticatedUser = springSecurityService.loadCurrentUser()
-		def photo = request.getFile('photo')
+		User authenticatedUser = springSecurityService.loadCurrentUser()
+		MultipartFile photo = request.getFile('photo')
 
-		System.out.println "Ride::uploadPhoto"
-		System.out.println photo
+		println "Ride::uploadPhoto"
+		println photo
 
 		Ride ride = ridesService.getUserCurrentRide(authenticatedUser.id)
 
@@ -88,7 +89,7 @@ class RidesController {
 
 		if(photo && !photo.isEmpty()) {
 			try {
-				fileUploadService.savePhoto(photo, Folder.RIDES, ride.id)
+				fileUploadService.savePhoto(photo, FileUploadService.Folder.RIDES, ride.id)
 				return render (status: 200, contentType:"application/json") {}
 			}
 			catch(e) {

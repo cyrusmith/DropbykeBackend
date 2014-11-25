@@ -20,3 +20,4 @@ grails-app/conf/Config.groovy
 web-app/images/bikes
 web-app/images/rides
 web-app/images/users
+web-app/images/bikesfirstuser

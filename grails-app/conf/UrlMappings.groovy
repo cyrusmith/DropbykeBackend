@@ -23,7 +23,8 @@ class UrlMappings {
 		"/api/profile/"(controller: "users", action: "updateProfile", method: "POST")
 
 		"/api/share/bikes/"(controller: "bikes", action: "bikesList", method: "GET") //list of bikes
-		"/api/share/bikes/"(controller: "bikes", action: "saveBike", method: "POST") //add new bike
+		"/api/share/bikes/"(controller: "bikes", action: "addBike", method: "POST") //add new bike
+		"/api/share/bikes/$id"(controller: "bikes", action: "editBike", method: "POST") //edit bike
 		"/api/share/bike/$id"(controller: "bikes", action: "bikeInfo", method: "GET")
 		"/api/share/bike/$id/userphoto"(controller: "bikes", action: "addUserPhoto", method: "POST")
 

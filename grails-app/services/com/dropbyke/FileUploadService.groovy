@@ -25,7 +25,8 @@ class FileUploadService {
 
 		BIKES("/images/bikes"),
 		RIDES("/images/rides"),
-		USERS("/images/rides")
+		USERS("/images/rides"),
+		BIKEFIRSTUSER("/images/bikesfirstuser")
 
 		Folder(String path) {
 			this.path = path
@@ -43,11 +44,10 @@ class FileUploadService {
 		return true
 	}
 
-	def savePhoto(MultipartFile file, Folder folder, long id) {
+	def savePhoto(MultipartFile file, Folder folder, long id) throws Exception {
 
 		if(!id) {
-			log.error("Bike image id not set")
-			return false
+			throw new IllegalArgumentException("Bike image id not set")
 		}
 
 		if (!validatePhoto(file)) {
@@ -73,8 +73,6 @@ class FileUploadService {
 			inputStream = file.getInputStream()
 			srcImg = ImageIO.read(inputStream);
 
-			println srcImg.getWidth()
-
 			def destWidth = 1200
 
 			if(srcImg.getWidth() > destWidth) {
@@ -88,6 +86,7 @@ class FileUploadService {
 			else {
 				ImageIO.write(srcImg, "jpg", new File(path + "/" + id +'.jpg'))
 			}
+			return true
 		}
 		catch(e) {
 			println e.message

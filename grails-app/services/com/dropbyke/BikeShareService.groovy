@@ -1,76 +1,106 @@
 package com.dropbyke
 
 import grails.transaction.Transactional
+import org.springframework.validation.FieldError
 
 @Transactional
 class BikeShareService {
 
-	def addBike(long userId, String sku, String name, int price, double lat, double lng, String address, String lockPassword, String message, boolean active) throws Exception {
+    def messageSource
 
-		User user = User.get(userId)
+    def addBike(long userId, String sku, String name, int price, double lat, double lng, String address, String lockPassword, String message) throws Exception {
 
-		if(!user) {
-			throw new IllegalArgumentException("User not exists")
-		}
+        User user = User.get(userId)
 
-		if(!(name && sku && price && lockPassword && address && message)) {
-			throw new IllegalArgumentException("Some fields are not set")
-		}
+        if (!user) {
+            throw new IllegalArgumentException("User not exists")
+        }
 
-		Bike bike = new Bike(
-				user: user,
-				sku: sku,
-				title:name,
-				priceRate:price,
-				lat:lat,
-				lng:lng,
-				address: address,
-				lockPassword: lockPassword,
-				messageFromLastUser:message)
+        if (!(name && sku && price && lockPassword && address && message)) {
+            throw new IllegalArgumentException("Some fields are not set")
+        }
 
-		if(!bike.save()) {
-			def errors = bike.errors.allErrors
-			if(errors && errors.size() > 0) {
-				String fld = errors.get(0).field
-				if("sku".equals(fld)) {
-					throw new Exception("Serial is not unique")
-				}
-				else {
-					throw new Exception(fld + " is invalid")
-				}
-			}
+        Bike bike = new Bike(
+                user: user,
+                sku: sku,
+                title: name,
+                priceRate: price,
+                lat: lat,
+                lng: lng,
+                address: address,
+                lockPassword: lockPassword,
+                messageFromLastUser: message)
 
-			throw new Exception("Failed to save bike")
-		}
+        if (!bike.save()) {
+            String msg = "Failed to save bike"
+            if (bike.errors.allErrors.size() > 0) {
+                FieldError error = bike.errors.allErrors.get(0)
+                msg = messageSource.getMessage(error, Locale.default)
+            }
+            throw new Exception(msg)
+        }
 
-		return bike
-	}
+        return bike
+    }
 
-	def userBikesInArea(long userId, double lat1, double lng1, double lat2, double lng2) throws Exception {
+    def editBike(long userId, long bikeId, String sku, String name, int price, double lat, double lng, String address, String lockPassword, boolean active) throws Exception {
 
-		System.out.println "userBikes" + [lat1, lat2, lng1, lng2]
+        if (!(name && sku && price && lockPassword && address)) {
+            throw new IllegalArgumentException("Some fields are not set")
+        }
 
-		User user = User.get(userId)
+        Bike bike = Bike.findByUserAndId(User.load(userId), bikeId)
 
-		if(!user) {
-			throw new IllegalArgumentException("User not found")
-		}
-		
-		def bc = Bike.createCriteria()
+        if(!bike) {
+            throw new IllegalArgumentException("Bike not found")
+        }
 
-		def bikes = bc.list {
-			maxResults(20)
-			eq('active', true)
-			eq('user', user)
-			gt('lat', lat1)
-			lt('lat', lat2)
-			gt('lng', lng1)
-			lt('lng', lng2)
-		}
-		
-		println bikes
-		
-		return bikes
-				
-	}
+        if(bike.locked) {
+            throw new Exception("Bike is in use")
+        }
+
+        bike.sku = sku
+        bike.title = name
+        bike.priceRate = price
+        bike.lat = lat
+        bike.lng = lng
+        bike.active = active
+        bike.address = address
+        bike.lockPassword = lockPassword
+
+        if (!bike.save()) {
+            String msg = "Failed to save bike"
+            if (bike.errors.allErrors.size() > 0) {
+                FieldError error = bike.errors.allErrors.get(0)
+                msg = messageSource.getMessage(error, Locale.default)
+            }
+            throw new Exception(msg)
+        }
+
+        return bike
+    }
+
+    def userBikesInArea(long userId, double lat1, double lng1, double lat2, double lng2) throws Exception {
+
+        User user = User.get(userId)
+
+        if (!user) {
+            throw new IllegalArgumentException("User not found")
+        }
+
+        def bc = Bike.createCriteria()
+
+        def bikes = bc.list {
+            maxResults(20)
+            eq('user', user)
+            gt('lat', lat1)
+            lt('lat', lat2)
+            gt('lng', lng1)
+            lt('lng', lng2)
+        }
+
+        return bikes
+
+    }
+
 }

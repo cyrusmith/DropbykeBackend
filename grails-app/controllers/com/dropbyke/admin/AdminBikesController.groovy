@@ -19,7 +19,6 @@ import grails.transaction.Transactional;
 @Secured(["ROLE_ADMIN"])
 class AdminBikesController {
 
-    def servletContext
     def fileUploadService
     def springSecurityService
 
