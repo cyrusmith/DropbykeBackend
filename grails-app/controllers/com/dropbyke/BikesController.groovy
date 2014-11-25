@@ -17,7 +17,6 @@ import groovy.sql.GroovyRowResult
 
 class BikesController {
 
-	def dataSource
 	def bikesService
 	def springSecurityService
 	def bikeShareService
@@ -153,10 +152,10 @@ class BikesController {
 	def bikesList() {
 		def authUser = springSecurityService.loadCurrentUser()
 
-		double lat1 = 0.0
-		double lat2 = 0.0
-		double lng1 = 0.0
-		double lng2 = 0.0
+		double lat1
+		double lat2
+		double lng1
+		double lng2
 
 		lat1 = ParseUtils.strToNumber(params["lat1"])
 		lat2 = ParseUtils.strToNumber(params["lat2"])
@@ -254,7 +253,7 @@ class BikesController {
 		try {
 			Bike bike = bikeShareService.addBike(authUser.id, sku, name, price, lat, lng, address, lockPassword, message, active)
 			if(fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
-				bikesService.setActive(bike.id, true)
+				bikesService.setActive(bike.id, active)
 				return render(status: 200, contentType:"application/json") {[ "bike": bike ]}
 			}
 			else {

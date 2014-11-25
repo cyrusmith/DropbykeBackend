@@ -71,6 +71,17 @@
 	<g:else>
 
 		<g:uploadForm url="${actionLink}" role="form">
+
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary btn-lg">Save</button>
+			</div>
+			
+			<div class="form-group">
+				<label for="active">Active (sharing)</label>
+				<g:checkBox name="active" value="1" checked="${active}"
+					id="active" />
+			</div>
+
 			<div class="form-group">
 				<label for="title">Title</label>
 				<g:textField name="title" class="form-control" value="${title}"

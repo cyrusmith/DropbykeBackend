@@ -14,11 +14,13 @@
 		</a>
 	</h2>
 
-	<table class="table users-table table-striped">
+	<table class="table users-table">
 		<thead>
 			<tr>
+				<g:sortableColumn property="user" title="User" />
 				<g:sortableColumn property="title" title="Title" />
 				<g:sortableColumn property="sku" title="SKU" />
+				<g:sortableColumn property="active" title="Active (sharing)" />
 				<g:sortableColumn property="locked" title="Status" />
 				<g:sortableColumn property="rating" title="Rating" />
 				<th>Lock password</th>
@@ -27,13 +29,26 @@
 
 		</thead>
 		<g:each in="${bikes}" var="bike">
-			<tr>
+		
+			<tr class="<g:if test="${!bike.active}">
+					bg-danger
+					</g:if><g:if test="${bike.locked}">
+					bg-info
+					</g:if>">
+				<td><a href="<g:createLink action="edit" controller="adminUsers" id="${bike.user.id}"/>">
+						${bike.user.username}
+				</a></td>
 				<td><a href="<g:createLink action="edit" id="${bike.id}"/>">
 						${bike.title}
 				</a></td>
 				<td>
 					${bike.sku}
 				</td>
+				<td><g:if test="${bike.active}">
+					Active
+					</g:if> <g:else>
+					Inactive 
+					</g:else></td>
 				<td><g:if test="${bike.locked}">
 				Locked
 				

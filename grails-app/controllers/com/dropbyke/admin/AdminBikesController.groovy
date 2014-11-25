@@ -19,286 +19,313 @@ import grails.transaction.Transactional;
 @Secured(["ROLE_ADMIN"])
 class AdminBikesController {
 
-	def servletContext
-	def fileUploadService
+    def servletContext
+    def fileUploadService
+    def springSecurityService
 
-	def index() {
-		[bikes: Bike.list(params), bikesCount: Bike.count()]
-	}
+    def index() {
+        def bikes
+        if (params.userId) {
+            session["userId"] = params.userId
+            bikes = Bike.findAllByUser(User.load(params.userId), params)
+        } else if(params.containsKey("sort") && session["userId"]) {
+            bikes = Bike.findAllByUser(User.load(session["userId"]), params)
+        }
+        else {
+            session["userId"] = null
+            bikes = Bike.list(params)
+        }
 
-	@Transactional
-	def edit() {
-		
-		def isHasImage = false
-		
-		if(request.get) {
-			if(params.id) {
-				Bike bike = Bike.get(params.id)
-				if(!bike) {
-					return response.sendError(404)
-				}
-				
-				isHasImage = fileUploadService.checkPhotoExists(Folder.BIKES, bike.id)
-				
-				return render(view:'edit', model: [
-					id:bike.id,
-					title:bike.title,
-					sku:bike.sku,
-					address:bike.address,
-					lat:bike.lat,
-					lng:bike.lng,
-					priceRate:bike.priceRate,
-					locked:bike.locked,
-					lockPassword:bike.lockPassword,
-					messageFromLastUser:bike.messageFromLastUser,
-					hasImage: isHasImage
-				])
-			}
-			return render(view:'edit')
-		}
+        [bikes: bikes, bikesCount: Bike.count()]
+    }
 
-		Bike bike
-		if(params.id) {
-			bike = Bike.get(params.id)
-		}
-		else {
-			bike = new Bike()
-		}
+    @Transactional
+    def edit() {
 
-		if(bike.locked) {
-			flash.error = "Cannot edit locked bike. Unlock first."
-			return render(view:'edit', model: [
-				id:bike.id,
-				title:bike.title,
-				sku:bike.sku,
-				address:bike.address,
-				lat:bike.lat,
-				lng:bike.lng,
-				priceRate:bike.priceRate,
-				locked:bike.locked,
-				lockPassword:bike.lockPassword,
-				messageFromLastUser:bike.messageFromLastUser,
-				hasImage: isHasImage
-			])
-		}
+        def isHasImage = false
 
-		if(!params.sku) {
-			flash.error = "SKU not set"
-			return render(view:'edit', model: [
-				title:params.title,
-				sku:params.sku
-			])
-		}
+        if (request.get) {
+            if (params.id) {
+                Bike bike = Bike.get(params.id)
+                if (!bike) {
+                    return response.sendError(404)
+                }
 
-		List errors = []
-		
-		if(!params.title) {
-			errors.add "Title not set"
-		}
-		
-		if(!params.sku) {
-			errors.add "sku not set"
-		}
+                isHasImage = fileUploadService.checkPhotoExists(Folder.BIKES, bike.id)
 
-		if(!params.priceRate) {
-			errors.add "Price not set"
-		}
+                return render(view: 'edit', model: [
+                        id                 : bike.id,
+                        title              : bike.title,
+                        sku                : bike.sku,
+                        address            : bike.address,
+                        lat                : bike.lat,
+                        lng                : bike.lng,
+                        priceRate          : bike.priceRate,
+                        locked             : bike.locked,
+                        active             : bike.active,
+                        lockPassword       : bike.lockPassword,
+                        messageFromLastUser: bike.messageFromLastUser,
+                        hasImage           : isHasImage
+                ])
+            }
+            return render(view: 'edit')
+        }
 
-		if(!params.lat || !params.lng) {
-			errors.add "Location not set"
-		}
+        Bike bike
+        if (params.id) {
+            bike = Bike.get(params.id)
+        } else {
+            bike = new Bike()
+            bike.user = springSecurityService.loadCurrentUser()
+        }
 
-		if(!params.address) {
-			errors.add "Address not set"
-		}
+        if (bike.locked) {
+            flash.error = "Cannot edit locked bike. Unlock first."
+            return render(view: 'edit', model: [
+                    id                 : bike.id,
+                    title              : bike.title,
+                    sku                : bike.sku,
+                    address            : bike.address,
+                    lat                : bike.lat,
+                    lng                : bike.lng,
+                    priceRate          : bike.priceRate,
+                    locked             : bike.locked,
+                    active             : bike.active,
+                    lockPassword       : bike.lockPassword,
+                    messageFromLastUser: bike.messageFromLastUser,
+                    hasImage           : isHasImage
+            ])
+        }
 
-		if(!params.lockPassword) {
-			errors.add "Lock not set"
-		}
+        if (!params.sku) {
+            flash.error = "SKU not set"
+            return render(view: 'edit', model: [
+                    title: params.title,
+                    sku  : params.sku
+            ])
+        }
 
-		if(!params.messageFromLastUser) {
-			errors.add "Message from last user not set"
-		}
+        List errors = []
 
-		if(errors.size() > 0) {
-			flash.error = errors.join(", ")
-			return render(view:'edit', model: [
-				id:bike?.id,
-				title:params.title,
-				sku:params.sku,
-				address:params.address,
-				lat:params.lat,
-				lng:params.lng,
-				priceRate:params.priceRate,
-				locked:bike?.locked,
-				lockPassword:params.lockPassword,
-				messageFromLastUser:params.messageFromLastUser,
-				hasImage: isHasImage
-			])
-		}
+        if (!params.title) {
+            errors.add "Title not set"
+        }
 
-		bike.title = params.title
-		bike.sku = params.sku
-		bike.priceRate = ParseUtils.strToInt(params.priceRate)
-		bike.lat = ParseUtils.strToNumber(params.lat)
-		bike.lng = ParseUtils.strToNumber(params.lng)
-		bike.address = params.address
-		bike.lockPassword = params.lockPassword
-		bike.messageFromLastUser = params.messageFromLastUser
+        if (!params.sku) {
+            errors.add "sku not set"
+        }
 
-		if(bike.save()) {
+        if (!params.priceRate) {
+            errors.add "Price not set"
+        }
 
-			def photo = request.getFile('photo')
+        if (!params.lat || !params.lng) {
+            errors.add "Location not set"
+        }
 
-			if(photo && !photo.isEmpty()) {
-				try {
-					fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)
-					flash.message = "Bike " + params.title + " successfully saved"
-					redirect(action: "index")
-				}
-				catch(e) {
-					flash.message = "Could not save photo " + e.message
-					redirect(action: "edit", id: bike.id)
-				}
-			}
+        if (!params.address) {
+            errors.add "Address not set"
+        }
 
-		}
-		else {
-			flash.error = "Could not save bike"
-			return render(view:'edit', model: [
-				title:params.title,
-				sku:params.sku
-			])
-		}
-	}
+        if (!params.lockPassword) {
+            errors.add "Lock not set"
+        }
 
-	@Transactional
-	def add() {
-		return this.edit()
-	}
+        if (!params.messageFromLastUser) {
+            errors.add "Message from last user not set"
+        }
 
-	@Transactional
-	def stopUsage() {
+        if (errors.size() > 0) {
+            flash.error = errors.join(", ")
+            return render(view: 'edit', model: [
+                    id                 : bike?.id,
+                    title              : params.title,
+                    sku                : params.sku,
+                    address            : params.address,
+                    lat                : params.lat,
+                    lng                : params.lng,
+                    priceRate          : params.priceRate,
+                    locked             : bike?.locked,
+                    active             : bike.active,
+                    lockPassword       : params.lockPassword,
+                    messageFromLastUser: params.messageFromLastUser,
+                    hasImage           : isHasImage
+            ])
+        }
 
-		Bike bike = Bike.get(params.id)
+        bike.title = params.title
+        bike.sku = params.sku
+        bike.priceRate = ParseUtils.strToInt(params.priceRate)
+        bike.lat = ParseUtils.strToNumber(params.lat)
+        bike.lng = ParseUtils.strToNumber(params.lng)
+        bike.address = params.address
+        bike.active = ParseUtils.strToInt(params.active)
+        bike.lockPassword = params.lockPassword
+        bike.messageFromLastUser = params.messageFromLastUser
 
-		if(!bike.locked) {
-			flash.error = "Bike is already unlocked"
-			redirect(action: "index")
-		}
+        if (bike.save()) {
 
-		def rc = Ride.createCriteria()
-		Ride ride = rc.get {
-			eq('bike', bike)
-			eq('complete', false)
-		}
+            def photo = request.getFile('photo')
 
-		User user = User.get(ride.user.id)
+            if (!params.id && photo && !photo.isEmpty()) {
+                try {
+                    fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)
+                    flash.message = "Bike " + params.title + " successfully saved"
+                }
+                catch (e) {
+                    flash.message = "Could not save photo " + e.message
+                    redirect(action: "edit", id: bike.id)
+                }
+            }
 
-		if(!ride) {
-			flash.error = "Bike has no ride in progress"
-			redirect(action: "index")
-		}
+            redirect(action: "index")
 
-		if(request.get) {
-			return render(view:'stopUsage', model: [
-				ride: ride,
-				bike: bike,
-				user: user
-			])
-		}
+        } else {
+            bike.errors.allErrors.each { it -> println it }
+            flash.error = "Could not save bike"
+            return render(view: 'edit', model: [
+                    id                 : bike?.id,
+                    title              : params.title,
+                    sku                : params.sku,
+                    address            : params.address,
+                    lat                : params.lat,
+                    lng                : params.lng,
+                    priceRate          : params.priceRate,
+                    locked             : bike?.locked,
+                    active             : bike.active,
+                    lockPassword       : params.lockPassword,
+                    messageFromLastUser: params.messageFromLastUser,
+                    hasImage           : isHasImage
+            ])
+        }
+    }
 
-		List errors = []
+    @Transactional
+    def add() {
+        return this.edit()
+    }
 
-		if(!params.stopAddress) {
-			errors.add "Address not set"
-		}
+    @Transactional
+    def stopUsage() {
 
-		if(!params.stopTime) {
-			errors.add "Stop timestamp not set"
-		}
+        Bike bike = Bike.get(params.id)
 
-		if(!params.stopLat || !params.stopLng) {
-			errors.add "Location not set"
-		}
+        if (!bike.locked) {
+            flash.error = "Bike is already unlocked"
+            redirect(action: "index")
+        }
 
-		if(!params.message) {
-			errors.add "Message not set"
-		}
+        def rc = Ride.createCriteria()
+        Ride ride = rc.get {
+            eq('bike', bike)
+            eq('complete', false)
+        }
 
-		def photo = request.getFile('photo')
-		if(photo && !photo.isEmpty()) {
-			try {
-				fileUploadService.savePhoto(photo, Folder.RIDES, ride.id)
-			}
-			catch(e) {
-				errors.add "Could not save photo" + e.message
-			}
-		}
-		else {
-			errors.add "Photo not set"
-		}
+        User user = User.get(ride.user.id)
 
-		String stopAddress = params.stopAddress
-		double stopLat = ParseUtils.strToNumber(params.stopLat)
-		double stopLng = ParseUtils.strToNumber(params.stopLng)
-		long stopTime = ParseUtils.strToLong(params.stopTime)*1000
-		String message = params.message
+        if (!ride) {
+            flash.error = "Bike has no ride in progress"
+            redirect(action: "index")
+        }
 
-		if(Math.abs(stopLat) < 0.00001 || Math.abs(stopLng) < 0.00001) {
-			errors.add "Location not set"
-		}
+        if (request.get) {
+            return render(view: 'stopUsage', model: [
+                    ride: ride,
+                    bike: bike,
+                    user: user
+            ])
+        }
 
-		if(!stopTime) {
-			errors.add "Stop time not set"
-		}
+        List errors = []
 
-		System.out.println stopTime + " " + ride.startTime
+        if (!params.stopAddress) {
+            errors.add "Address not set"
+        }
 
-		if(stopTime < ride.startTime) {
-			errors.add "Stop time should be greater than start time"
-		}
+        if (!params.stopTime) {
+            errors.add "Stop timestamp not set"
+        }
 
-		if(errors.size() > 0) {
-			flash.error = errors.join(", ")
-			return render(view:'stopUsage', model: [
-				ride: [
-					id: ride.id,
-					startTime: ride.startTime,
-					startAddress: ride.startAddress,
-					startLat: ride.startLat,
-					startLng:ride.startLng,
-					stopTime: params.stopTime,
-					stopAddress: params.stopAddress,
-					stopLat:params.stopLat,
-					stopLng:params.stopLng
-				],
-				bike: [
-					id: bike.id,
-					title: bike.title,
-					messageFromLastUser: params.message
-				],
-				user: user
-			])
-		}
+        if (!params.stopLat || !params.stopLng) {
+            errors.add "Location not set"
+        }
 
-		ride.complete = true
-		ride.stopAddress = stopAddress
-		ride.stopLat = stopLat
-		ride.stopLng = stopLng
-		ride.stopTime = stopTime
-		ride.message = message
+        if (!params.message) {
+            errors.add "Message not set"
+        }
 
-		bike.locked = false
-		bike.lat = stopLat
-		bike.lng = stopLng
-		bike.address = stopAddress
-		bike.messageFromLastUser = message
-		bike.lastUserPhone = user.phone
-		bike.lastRideId = ride.id
+        def photo = request.getFile('photo')
+        if (photo && !photo.isEmpty()) {
+            try {
+                fileUploadService.savePhoto(photo, Folder.RIDES, ride.id)
+            }
+            catch (e) {
+                errors.add "Could not save photo" + e.message
+            }
+        } else {
+            errors.add "Photo not set"
+        }
 
-		if(ride.save() && bike.save()) {
-			return redirect(action: "edit", id: bike.id)
-		}
-	}
+        String stopAddress = params.stopAddress
+        double stopLat = ParseUtils.strToNumber(params.stopLat)
+        double stopLng = ParseUtils.strToNumber(params.stopLng)
+        long stopTime = ParseUtils.strToLong(params.stopTime) * 1000
+        String message = params.message
+
+        if (Math.abs(stopLat) < 0.00001 || Math.abs(stopLng) < 0.00001) {
+            errors.add "Location not set"
+        }
+
+        if (!stopTime) {
+            errors.add "Stop time not set"
+        }
+
+        System.out.println stopTime + " " + ride.startTime
+
+        if (stopTime < ride.startTime) {
+            errors.add "Stop time should be greater than start time"
+        }
+
+        if (errors.size() > 0) {
+            flash.error = errors.join(", ")
+            return render(view: 'stopUsage', model: [
+                    ride: [
+                            id          : ride.id,
+                            startTime   : ride.startTime,
+                            startAddress: ride.startAddress,
+                            startLat    : ride.startLat,
+                            startLng    : ride.startLng,
+                            stopTime    : params.stopTime,
+                            stopAddress : params.stopAddress,
+                            stopLat     : params.stopLat,
+                            stopLng     : params.stopLng
+                    ],
+                    bike: [
+                            id                 : bike.id,
+                            title              : bike.title,
+                            messageFromLastUser: params.message
+                    ],
+                    user: user
+            ])
+        }
+
+        ride.complete = true
+        ride.stopAddress = stopAddress
+        ride.stopLat = stopLat
+        ride.stopLng = stopLng
+        ride.stopTime = stopTime
+        ride.message = message
+
+        bike.locked = false
+        bike.lat = stopLat
+        bike.lng = stopLng
+        bike.address = stopAddress
+        bike.messageFromLastUser = message
+        bike.lastUserPhone = user.phone
+        bike.lastRideId = ride.id
+
+        if (ride.save() && bike.save()) {
+            return redirect(action: "edit", id: bike.id)
+        }
+    }
 }
