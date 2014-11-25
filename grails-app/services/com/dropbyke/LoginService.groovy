@@ -1,5 +1,6 @@
 package com.dropbyke
 
+import com.dropbyke.money.Account
 import com.odobo.grails.plugin.springsecurity.rest.token.generation.TokenGenerator;
 import com.odobo.grails.plugin.springsecurity.rest.token.storage.TokenStorageService;
 
@@ -20,7 +21,7 @@ class LoginService {
 		User user = User.findByFacebookId(uid)
 
 		if(user == null) {
-			user = new User(facebookId:uid, username:uid, password: uid, name:name, email: email)
+			user = new User(facebookId:uid, username:uid, password: uid, name:name, email: email, account: new Account(sum: 0L))
 			user.save()
 			Role role = getRole("ROLE_USER")
 			UserRole.create(user, role)
@@ -41,7 +42,7 @@ class LoginService {
 		if(users && users.size() > 0) {
 			user = users.get(0)
 		} else {
-			user = new User(username: aPhone, password: aPhone, phone: aPhone)
+			user = new User(username: aPhone, password: aPhone, phone: aPhone, account: new Account(sum: 0L))
 			user.save()
 			Role role = getRole("ROLE_USER")
 			UserRole.create(user, role)

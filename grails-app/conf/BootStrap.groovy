@@ -2,7 +2,8 @@ import com.dropbyke.Bike;
 import com.dropbyke.Card;
 import com.dropbyke.Role;
 import com.dropbyke.User;
-import com.dropbyke.UserRole;
+import com.dropbyke.UserRole
+import com.dropbyke.money.Account;
 
 class BootStrap {
 
@@ -15,8 +16,8 @@ class BootStrap {
 			User user = User.findByUsername("admin")
 
 			if(!user) {
-				user = new User(username: "admin", password: grailsApplication.config.com.dropbyke.adminPassword)
-				user.save()
+				user = new User(username: "admin", password: grailsApplication.config.com.dropbyke.adminPassword, account: new Account(sum: 0L))
+				user.save(flush: true)
 
 				Role role = Role.findByAuthority("ROLE_ADMIN")
 

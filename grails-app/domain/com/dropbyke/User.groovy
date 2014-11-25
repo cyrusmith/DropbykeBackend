@@ -1,11 +1,15 @@
 package com.dropbyke
 
+import com.dropbyke.money.Account
+
 class User {
 
 	transient springSecurityService
 
 	static hasMany = [rides: Ride, cards: Card, bikes: Bike]
-	
+
+	static hasOne = [account: Account]
+
 	static fetchMode = [cards: 'eager']
 	
 	String facebookId = ""	

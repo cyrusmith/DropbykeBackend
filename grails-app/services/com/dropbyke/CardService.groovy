@@ -1,6 +1,7 @@
 package com.dropbyke
 
-import com.stripe.Stripe;
+import com.dropbyke.money.Operation
+import com.stripe.Stripe
 import com.stripe.exception.CardException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
@@ -12,144 +13,146 @@ import groovy.util.logging.Log4j;
 @Log4j
 class CardService {
 
-	def grailsApplication
+    def grailsApplication
+    def moneyService
 
-	@Transactional
-	def editCard(long userId, String number, String name, String expire, String cvc, String stripeCustomerId) {
+    @Transactional
+    def editCard(long userId, String number, String name, String expire, String cvc, String stripeCustomerId) {
 
-		User user = User.get(userId)
+        User user = User.get(userId)
 
-		if(!user) {
-			throw new IllegalArgumentException("User not found")
-		}
+        if (!user) {
+            throw new IllegalArgumentException("User not found")
+        }
 
-		Card card = user.cards.find { it.number == number }
+        Card card = user.cards.find { it.number == number }
 
-		if(!card) {
-			card = new Card(number: number, name:name, expire:expire, cvc:cvc, stripeCustomerId:stripeCustomerId)
+        if (!card) {
+            card = new Card(number: number, name: name, expire: expire, cvc: cvc, stripeCustomerId: stripeCustomerId)
 
-			user.addToCards(card).save()
-		}
-		else {
-			card.number = number
-			card.name = name
-			card.expire = expire
-			card.cvc = cvc
-			card.stripeCustomerId = stripeCustomerId
-			card.save()
-		}
+            user.addToCards(card).save()
+        } else {
+            card.number = number
+            card.name = name
+            card.expire = expire
+            card.cvc = cvc
+            card.stripeCustomerId = stripeCustomerId
+            card.save()
+        }
 
-		return card
-	}
+        return card
+    }
 
-	def createCustomer(String cardNumber, String name, String expireMonth, String expireYear, String cvc) {
+    def createCustomer(String cardNumber, String name, String expireMonth, String expireYear, String cvc) {
 
-		log.debug("Create customer with: {" + cardNumber + ", " + name + ", " + cvc + "}")
+        log.debug("Create customer with: {" + cardNumber + ", " + name + ", " + cvc + "}")
 
-		Stripe.apiKey = grailsApplication.config.com.dropbyke.stripeApiKey;
+        Stripe.apiKey = grailsApplication.config.com.dropbyke.stripeApiKey;
 
-		Map<String, Object> customerParams = new HashMap<String, Object>();
-		customerParams.put("description", "Customer for " + name);
+        Map<String, Object> customerParams = new HashMap<String, Object>();
+        customerParams.put("description", "Customer for " + name);
 
-		Map<String, Object> cardParams = new HashMap<String, Object>();
-		cardParams.put("number", cardNumber);
-		cardParams.put("name", name);
-		cardParams.put("exp_month", expireMonth);
-		cardParams.put("exp_year", expireYear);
-		cardParams.put("cvc", cvc);
+        Map<String, Object> cardParams = new HashMap<String, Object>();
+        cardParams.put("number", cardNumber);
+        cardParams.put("name", name);
+        cardParams.put("exp_month", expireMonth);
+        cardParams.put("exp_year", expireYear);
+        cardParams.put("cvc", cvc);
 
-		customerParams.put("card", cardParams);
+        customerParams.put("card", cardParams);
 
-		try {
-			return Customer.create(customerParams)
-		}
-		catch(CardException e) {
-			log.error(e.message)
-			return e.message
-		}
-		catch(StripeException e) {
-			log.error(e)
-			return null
-		}
-	}
+        try {
+            return Customer.create(customerParams)
+        }
+        catch (CardException e) {
+            log.error(e.message)
+            return e.message
+        }
+        catch (StripeException e) {
+            log.error(e)
+            return null
+        }
+    }
 
-	@Transactional
-	def checkout(long userId, long rideId, long amount) {
+    def checkout(long userId, long rideId, long amount) {
 
-		Stripe.apiKey = grailsApplication.config.com.dropbyke.stripeApiKey;
+        Stripe.apiKey = grailsApplication.config.com.dropbyke.stripeApiKey;
 
-		if(amount < 50) {
-			throw new IllegalArgumentException("Amount is too small");
-		}
+        if (amount < 50) {
+            throw new IllegalArgumentException("Amount is too small");
+        }
 
-		User user = User.get(userId)
-		Ride ride = Ride.get(rideId)
+        User user = User.get(userId)
+        Ride ride = Ride.get(rideId)
 
-		if(!user) {
-			throw new IllegalArgumentException("Could not find user");
-		}
+        if (!user) {
+            throw new IllegalArgumentException("Could not find user");
+        }
 
-		if(!ride) {
-			throw new IllegalArgumentException("Could not find ride");
-		}
+        if (!ride) {
+            throw new IllegalArgumentException("Could not find ride");
+        }
 
-		if(user.cards.isEmpty()) {
-			throw new IllegalStateException("User has no cards");
-		}
+        if (user.cards.isEmpty()) {
+            throw new IllegalStateException("User has no cards");
+        }
 
-		for(Card card in user.cards) {
+        List stripeIds = []
 
-			try {
-				Map<String, Object> chargeParams = new HashMap<String, Object>();
+        for (Card card in user.cards) {
+            stripeIds.add(card.stripeCustomerId)
+        }
 
-				chargeParams.put("amount", amount);
-				chargeParams.put("currency", "usd");
-				chargeParams.put("customer", card.stripeCustomerId);
-				chargeParams.put("description", "Charge for " + (user.name ? user.name : user.phone));
+        try {
+            String stripeChargeId = chargeStripe(stripeIds, amount, user.phone)
+            if (stripeChargeId) {
+                moneyService.addCheckout(user.id, amount, stripeChargeId)
+                ride.charged = true
+                ride.save()
+            }
+        }
+        catch (Exception e) {
 
-				Map<String, Object> initialMetadata = new HashMap<String, Object>();
-				initialMetadata.put("phone", user.phone)
+        }
 
-				if(user.email && !"".equals(user.email)) {
-					initialMetadata.put("email", user.email)
-				}
+        return false
+    }
 
-				if(user.name && !"".equals(user.name)) {
-					initialMetadata.put("name", user.name)
-				}
-				else {
-					initialMetadata.put("name", user.username)
-				}
+    String chargeStripe(List stripeIds, long amount, String userphone) {
 
-				chargeParams.put("metadata", initialMetadata)
+        Stripe.apiKey = grailsApplication.config.com.dropbyke.stripeApiKey;
 
-				Charge charge = Charge.create(chargeParams)
+        for (String stripeId in stripeIds) {
 
-				if(!charge) {
-					continue;
-				}
+            try {
+                Map<String, Object> chargeParams = new HashMap<String, Object>();
 
-				println charge
+                chargeParams.put("amount", amount);
+                chargeParams.put("currency", "usd");
+                chargeParams.put("customer", stripeId);
+                chargeParams.put("description", "Charge for " + userphone);
 
-				com.dropbyke.Charge dbCharge = new com.dropbyke.Charge(
-						amount: amount,
-						user: user,
-						ride: ride,
-						cardNumber: card.number,
-						stripeChargeId: charge.getId(),
-						timestamp: System.currentTimeMillis()
-						)
-				dbCharge.save()
+                Map<String, Object> initialMetadata = new HashMap<String, Object>();
+                initialMetadata.put("phone", userphone)
+                chargeParams.put("metadata", initialMetadata)
 
-				ride.charged = true
-				ride.save()
-				return true
-			}
-			catch(e) {
-				println e.message
-				continue
-			}
-		}
-		return false
-	}
+                Charge charge = Charge.create(chargeParams)
+
+                if (charge.failureCode) {
+                    continue;
+                }
+
+                return charge.id
+
+            }
+            catch (StripeException e) {
+                println e.message
+                continue;
+            }
+        }
+
+        return null
+
+    }
+
 }
