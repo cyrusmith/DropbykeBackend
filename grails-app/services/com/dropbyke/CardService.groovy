@@ -1,6 +1,5 @@
 package com.dropbyke
 
-import com.dropbyke.money.Operation
 import com.stripe.Stripe
 import com.stripe.exception.CardException;
 import com.stripe.exception.StripeException;
@@ -14,7 +13,7 @@ import groovy.util.logging.Log4j;
 class CardService {
 
     def grailsApplication
-    def moneyService
+    def accountService
 
     @Transactional
     def editCard(long userId, String number, String name, String expire, String cvc, String stripeCustomerId) {
@@ -106,7 +105,7 @@ class CardService {
         try {
             String stripeChargeId = chargeStripe(stripeIds, amount, user.phone)
             if (stripeChargeId) {
-                moneyService.addCheckout(user.id, amount, stripeChargeId)
+                accountService.addCheckout(user.id, amount, stripeChargeId)
                 ride.charged = true
                 ride.save()
             }

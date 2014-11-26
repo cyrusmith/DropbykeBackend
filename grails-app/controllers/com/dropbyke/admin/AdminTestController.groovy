@@ -6,7 +6,7 @@ import grails.plugin.springsecurity.annotation.Secured
 class AdminTestController {
 
     def cardService
-    def moneyService
+    def accountService
 
     def testCheckoutStripe() {
         String chargeId = cardService.chargeStripe(["123", "cus_5DC16hLx6dC2aq"], 10000000L, "232323223")
@@ -15,8 +15,7 @@ class AdminTestController {
 
     def testMoneyService() {
         String chargeId = "chchchchch"
-        //
-        render moneyService.addCheckout(2L, 100L, chargeId)
+        render accountService.addCheckout(2L, 100L, chargeId)
     }
 
 }

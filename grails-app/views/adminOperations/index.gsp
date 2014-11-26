@@ -3,15 +3,19 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
     <meta name="layout" content="admin"/>
-    <title>Users</title>
+    <title>Operations</title>
 </head>
 
 <body>
 
 <h2>
-    Users <a type="button" class="btn btn-primary"
-             href="<g:createLink action="add"/>"><span
-            class="glyphicon glyphicon-plus"></span> Add user
+    Operations <g:if test="${user}">
+    for user
+    <a type="button" class="btn btn-primary"
+       href="<g:createLink action="edit" id="${user.id}" controller="adminUsers"/>">${user.name} ${user.phone}</a>
+
+</g:if>
+
 </a>
 </h2>
 

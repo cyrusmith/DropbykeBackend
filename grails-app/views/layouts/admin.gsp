@@ -22,8 +22,7 @@
 		<div class="menu">
 			<g:link controller="adminUsers" action="index">Users</g:link> |
 			<g:link controller="adminBikes" action="index">Bikes</g:link> |
-			<g:link controller="adminRides" action="index">Rides</g:link> | 			
-			<g:link controller="adminCharges" action="index">Charges</g:link> 			
+			<g:link controller="adminRides" action="index">Rides</g:link>
 		</div>
 		
 		<g:if test="${flash.error}">

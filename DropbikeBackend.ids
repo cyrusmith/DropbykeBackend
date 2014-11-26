@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="dataSourceStorage">
+  <data-source name="DropbikeBackend dev" uuid="c94b49e7-0cde-4561-9b0e-a740f3a5d1a6">
+    <database-info product="MySQL" version="5.6.11" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.29 ( Revision: alexander.soklakov@oracle.com-20140120140810-s44574olh90i6i4l )">
+      <extra-name-characters>#@</extra-name-characters>
+      <identifier-quote-string>`</identifier-quote-string>
+    </database-info>
+    <case-sensitivity plain-identifiers="lower" quoted-identifiers="lower"/>
+    <schema name="" catalog="dropbike"/>
+    <table name="account" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="sum" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="user_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="FK_h6dr47em6vg85yuwt4e2roca4" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <exported-key name="FK_cwjmw3oq5fhkceahr96k1xh3n" table="operation" schema="" catalog="dropbike" columns="account_id"/>
+      <index name="user_id_uniq_1416977633160" unique="true" columns="user_id"/>
+      <index name="FK_h6dr47em6vg85yuwt4e2roca4" unique="false" columns="user_id"/>
+    </table>
+    <table name="authentication_token" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="token_value" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="username" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+    </table>
+    <table name="bike" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="active" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="address" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="last_ride_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="last_user_phone" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="lat" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8"/>
+      <column name="lng" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8"/>
+      <column name="lock_password" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="locked" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="message_from_last_user" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="price_rate" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="rating" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8"/>
+      <column name="sku" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="title" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="user_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="FK_h3jrbfm2ljuc12a1th1yuekhl" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <exported-key name="FK_vqw20n58bscajx7hs67dpvk7" table="bike_rating" schema="" catalog="dropbike" columns="bike_id"/>
+      <exported-key name="FK_6monxh6jdvoxv45pepuj2xu2f" table="ride" schema="" catalog="dropbike" columns="bike_id"/>
+      <index name="sku_uniq_1416378990906" unique="true" columns="sku"/>
+      <index name="FK_h3jrbfm2ljuc12a1th1yuekhl" unique="false" columns="user_id"/>
+    </table>
+    <table name="bike_rating" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="bike_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="rating" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="ride_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="user_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="FK_6mrke3a0kbaxjte756fhm92sn" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="FK_dsvbu4oumu91oxeuhyqk7bbm5" columns="ride_id" ref-table="ride" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="FK_vqw20n58bscajx7hs67dpvk7" columns="bike_id" ref-table="bike" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="FK_6mrke3a0kbaxjte756fhm92sn" unique="false" columns="user_id"/>
+      <index name="FK_dsvbu4oumu91oxeuhyqk7bbm5" unique="false" columns="ride_id"/>
+      <index name="FK_vqw20n58bscajx7hs67dpvk7" unique="false" columns="bike_id"/>
+    </table>
+    <table name="card" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="cvc" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="expire" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="number" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="stripe_customer_id" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="user_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="FK_bghvg4xo76su71a9k40s0rplq" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="FK_bghvg4xo76su71a9k40s0rplq" unique="false" columns="user_id"/>
+    </table>
+    <table name="databasechangelog" schema="" catalog="dropbike" type="TABLE">
+      <column name="ID" sqlType="VARCHAR" precision="63" scale="0" nullable="false" jdbcType="12"/>
+      <column name="AUTHOR" sqlType="VARCHAR" precision="63" scale="0" nullable="false" jdbcType="12"/>
+      <column name="FILENAME" sqlType="VARCHAR" precision="200" scale="0" nullable="false" jdbcType="12"/>
+      <column name="DATEEXECUTED" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93"/>
+      <column name="ORDEREXECUTED" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="EXECTYPE" sqlType="VARCHAR" precision="10" scale="0" nullable="false" jdbcType="12"/>
+      <column name="MD5SUM" sqlType="VARCHAR" precision="35" scale="0" nullable="true" jdbcType="12"/>
+      <column name="DESCRIPTION" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12"/>
+      <column name="COMMENTS" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12"/>
+      <column name="TAG" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12"/>
+      <column name="LIQUIBASE" sqlType="VARCHAR" precision="20" scale="0" nullable="true" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="ID,AUTHOR,FILENAME"/>
+    </table>
+    <table name="databasechangeloglock" schema="" catalog="dropbike" type="TABLE">
+      <column name="ID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="LOCKED" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6"/>
+      <column name="LOCKGRANTED" sqlType="DATETIME" precision="19" scale="0" nullable="true" jdbcType="93"/>
+      <column name="LOCKEDBY" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="ID"/>
+    </table>
+    <table name="operation" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="account_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="amount" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="sum_after" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="sum_before" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="class" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="charge_id" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12"/>
+      <column name="created" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="FK_cwjmw3oq5fhkceahr96k1xh3n" columns="account_id" ref-table="account" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="FK_cwjmw3oq5fhkceahr96k1xh3n" unique="false" columns="account_id"/>
+    </table>
+    <table name="path" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="ride_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="FK_h7ptnjsr8ltpe5n7xdcobnyg3" columns="ride_id" ref-table="ride" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="FK_h7ptnjsr8ltpe5n7xdcobnyg3" unique="false" columns="ride_id"/>
+    </table>
+    <table name="ride" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="bike_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="charged" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="complete" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="distance" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="message" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="start_address" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="start_lat" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8"/>
+      <column name="start_lng" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8"/>
+      <column name="start_time" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="stop_address" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="stop_lat" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8"/>
+      <column name="stop_lng" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8"/>
+      <column name="stop_time" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="sum" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="user_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="FK_t1j9pjna87g6lq08ng7w96d4j" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="FK_6monxh6jdvoxv45pepuj2xu2f" columns="bike_id" ref-table="bike" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <exported-key name="FK_dsvbu4oumu91oxeuhyqk7bbm5" table="bike_rating" schema="" catalog="dropbike" columns="ride_id"/>
+      <exported-key name="FK_h7ptnjsr8ltpe5n7xdcobnyg3" table="path" schema="" catalog="dropbike" columns="ride_id"/>
+      <index name="FK_6monxh6jdvoxv45pepuj2xu2f" unique="false" columns="bike_id"/>
+      <index name="FK_t1j9pjna87g6lq08ng7w96d4j" unique="false" columns="user_id"/>
+    </table>
+    <table name="role" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="authority" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="FK_it77eq964jhfqtu54081ebtio" table="user_role" schema="" catalog="dropbike" columns="role_id"/>
+      <index name="authority_uniq_1416378990926" unique="true" columns="authority"/>
+    </table>
+    <table name="user" schema="" catalog="dropbike" type="TABLE">
+      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
+      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="account_expired" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="account_locked" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="edited_once" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="email" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="enabled" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="facebook_id" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="is_online" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="password" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="password_expired" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="phone" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="share_facebook" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
+      <column name="username" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="FK_h6dr47em6vg85yuwt4e2roca4" table="account" schema="" catalog="dropbike" columns="user_id"/>
+      <exported-key name="FK_h3jrbfm2ljuc12a1th1yuekhl" table="bike" schema="" catalog="dropbike" columns="user_id"/>
+      <exported-key name="FK_6mrke3a0kbaxjte756fhm92sn" table="bike_rating" schema="" catalog="dropbike" columns="user_id"/>
+      <exported-key name="FK_bghvg4xo76su71a9k40s0rplq" table="card" schema="" catalog="dropbike" columns="user_id"/>
+      <exported-key name="FK_t1j9pjna87g6lq08ng7w96d4j" table="ride" schema="" catalog="dropbike" columns="user_id"/>
+      <exported-key name="FK_apcc8lxk2xnug8377fatvbn04" table="user_role" schema="" catalog="dropbike" columns="user_id"/>
+      <index name="username_uniq_1416378990936" unique="true" columns="username"/>
+    </table>
+    <table name="user_role" schema="" catalog="dropbike" type="TABLE">
+      <column name="role_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <column name="user_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
+      <primary-key name="PRIMARY" columns="role_id,user_id"/>
+      <foreign-key name="FK_apcc8lxk2xnug8377fatvbn04" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="FK_it77eq964jhfqtu54081ebtio" columns="role_id" ref-table="role" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="FK_apcc8lxk2xnug8377fatvbn04" unique="false" columns="user_id"/>
+      <index name="FK_it77eq964jhfqtu54081ebtio" unique="false" columns="role_id"/>
+    </table>
+  </data-source>
+</component>

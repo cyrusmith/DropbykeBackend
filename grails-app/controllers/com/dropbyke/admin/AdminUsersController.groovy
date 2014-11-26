@@ -16,15 +16,16 @@ class AdminUsersController {
 	def loginService
 
 	def index() {
-		[users: User.list(params), usersCount: User.count()]
+		List users = User.list(params)
+		[users: users, usersCount: User.count()]
 	}
 
 	@Transactional
 	def edit() {
 
 		if(request.get) {
-			if(params.id) {
-				User user = User.get(params.id)
+			if(params.containsKey("id")) {
+				User user = User.get(params.getLong("id"))
 				if(!user) {
 					return sendError(code:400)
 				}

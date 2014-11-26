@@ -27,6 +27,26 @@
     </annotationProcessing>
   </component>
   <component name="CopyrightManager" default="" />
+  <component name="DataSourceManagerImpl" format="xml" hash="421343506">
+    <data-source source="LOCAL" name="DropbikeBackend dev" uuid="c94b49e7-0cde-4561-9b0e-a740f3a5d1a6">
+      <driver-ref>mysql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://localhost:3306/dropbike?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull</jdbc-url>
+      <driver-properties>
+        <property name="zeroDateTimeBehavior" value="convertToNull" />
+        <property name="tinyInt1isBit" value="false" />
+        <property name="characterEncoding" value="utf8" />
+        <property name="characterSetResults" value="utf8" />
+        <property name="yearIsDateType" value="false" />
+      </driver-properties>
+      <libraries>
+        <library>
+          <url>file://$MAVEN_REPOSITORY$/mysql/mysql-connector-java/5.1.29/mysql-connector-java-5.1.29.jar</url>
+        </library>
+      </libraries>
+    </data-source>
+  </component>
   <component name="DependencyValidationManager">
     <option name="SKIP_IMPORT_STATEMENTS" value="false" />
   </component>
@@ -168,6 +188,14 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+  </component>
+  <component name="dataSourceStorageLocal">
+    <data-source name="DropbikeBackend dev" uuid="c94b49e7-0cde-4561-9b0e-a740f3a5d1a6">
+      <user-name>root</user-name>
+      <user-password>df9bdf98df99</user-password>
+      <schema-pattern>dropbike.*</schema-pattern>
+      <default-schemas>dropbike.*</default-schemas>
+    </data-source>
   </component>
   <component name="libraryTable">
     <library name="Grails 2.4.3">
