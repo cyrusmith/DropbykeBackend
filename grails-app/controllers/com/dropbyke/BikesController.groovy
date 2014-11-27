@@ -1,5 +1,6 @@
 package com.dropbyke
 
+import org.grails.datastore.mapping.query.api.BuildableCriteria
 import org.springframework.validation.FieldError
 
 import org.codehaus.groovy.grails.web.json.JSONObject;
@@ -20,22 +21,18 @@ class BikesController {
     @Secured(['ROLE_USER'])
     def bikesInArea() {
 
-        def authUser = springSecurityService.loadCurrentUser()
+        User authUser = springSecurityService.loadCurrentUser()
 
-        double lat1 = 0.0
-        double lat2 = 0.0
-        double lng1 = 0.0
-        double lng2 = 0.0
+        double lat1 = ParseUtils.strToNumber(params["lat1"], 0.0)
+        double lat2 = ParseUtils.strToNumber(params["lat2"], 0.0)
+        double lng1 = ParseUtils.strToNumber(params["lng1"], 0.0)
+        double lng2 = ParseUtils.strToNumber(params["lng2"], 0.0)
 
-        lat1 = ParseUtils.strToNumber(params["lat1"], 0.0)
-        lat2 = ParseUtils.strToNumber(params["lat2"], 0.0)
-        lng1 = ParseUtils.strToNumber(params["lng1"], 0.0)
-        lng2 = ParseUtils.strToNumber(params["lng2"], 0.0)
+        double userLat = ParseUtils.strToNumber(params["userLat"], 0.0)
+        double userLng = ParseUtils.strToNumber(params["userLng"], 0.0)
 
-        System.out.println "bikesInArea" + [lat1, lat2, lng1, lng2]
-
-        def bikes
-        def bc = Bike.createCriteria()
+        List bikes
+        BuildableCriteria bc = Bike.createCriteria()
 
         if ((Math.abs(lng1 - lng2) > 0.0000001) && Math.abs(lat1 - lat2) > 0.0000001) {
 
@@ -50,16 +47,26 @@ class BikesController {
                 eq('active', true)
             }
         } else {
-
-            bikes = bc.list {
-                maxResults(20)
-                ne('user', authUser)
-                eq('locked', false)
-                eq('active', true)
-            }
+            bikes = []
         }
 
-        render(status: 200, contentType: "application/json") { ["bikes": bikes] }
+        long minDist = Long.MAX_VALUE
+
+        if (bikes.size() > 0) {
+            bikes.each { Bike bike ->
+                double d = dist(bike.lat, bike.lng, userLat, userLng)
+                if (d < minDist) {
+                    minDist = d
+                }
+            }
+        } else {
+            minDist = -1
+        }
+
+        render(status: 200, contentType: "application/json") {
+            ["bikes": bikes, "nearest": minDist, "location": [userLat, userLng]]
+        }
+
     }
 
     @Secured(['ROLE_USER'])
@@ -93,7 +100,7 @@ class BikesController {
         if (rides && rides.size()) {
             ride = rides.get(0)
         }
-        System.out.println "ride=" + ride + ", bike=" + bike
+
         return render(status: 200, contentType: "application/json") {
             ["bike": bike, "ride": ride]
         }
@@ -208,7 +215,7 @@ class BikesController {
             name = json.getString("title")
             sku = json.getString("sku")
             price = json.getInt("priceRate")
-            lockPassword = json.getLong("lockPassword")
+            lockPassword = json.getString("lockPassword")
             address = json.getString("address")
             lat = json.getDouble("lat")
             lng = json.getDouble("lng")
@@ -237,20 +244,27 @@ class BikesController {
             message = params["messageFromLastUser"]
         }
 
-        MultipartFile photo = request.getFile("photo")
+        MultipartFile photo = params.containsKey("photo") ? params["photo"] : null
 
-        if (!photo || photo.isEmpty() || !fileUploadService.validatePhoto(photo)) {
+        if ((!photo || photo.isEmpty() || !fileUploadService.validatePhoto(photo)) && !grailsApplication.config.com.dropbyke.debug) {
             return render(status: 400, contentType: "application/json") { ["error": "Photo not set"] }
         }
 
         try {
             Bike bike = bikeShareService.addBike(authUser.id, sku, name, price, lat, lng, address, lockPassword, message)
-            if (fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
-                bikesService.setActive(bike.id, active)
+
+            if (grailsApplication.config.com.dropbyke.debug && (!photo || photo.isEmpty())) {
                 return render(status: 200, contentType: "application/json") { ["bike": bike] }
             } else {
-                return render(status: 500, contentType: "application/json") { ["error": "Failed to save image"] }
+                if (fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
+                    bikesService.setActive(bike.id, active)
+                    return render(status: 200, contentType: "application/json") { ["bike": bike] }
+                } else {
+                    return render(status: 500, contentType: "application/json") { ["error": "Failed to save image"] }
+                }
+
             }
+
         }
         catch (IllegalArgumentException e) {
             return render(status: 400, contentType: "application/json") {
@@ -333,18 +347,20 @@ class BikesController {
 
         try {
             Bike bike = bikeShareService.editBike(authUser.id, id, sku, name, price, lat, lng, address, lockPassword, active)
-            if(params.containsKey('photo') && params.photo instanceof MultipartFile) {
+            if (params.containsKey('photo') && params.photo instanceof MultipartFile) {
                 MultipartFile photo = params.photo
                 if (photo && !photo.isEmpty() || !fileUploadService.validatePhoto(photo)) {
                     if (!fileUploadService.savePhoto(photo, Folder.BIKES, bike.id)) {
-                        return render(status: 500, contentType: "application/json") { ["error": "Failed to save image"] }
+                        return render(status: 500, contentType: "application/json") {
+                            ["error": "Failed to save image"]
+                        }
                     }
                 }
             }
 
             return render(status: 200, contentType: "application/json") { ["bike": bike] }
         }
-        catch(e) {
+        catch (e) {
             return render(status: 500, contentType: "application/json") { ["error": e.message] }
         }
 
@@ -371,8 +387,12 @@ class BikesController {
 
         MultipartFile photo = request.getFile("photo")
 
-        if (fileUploadService.savePhoto(photo, Folder.BIKEFIRSTUSER, bike.id)) {
-            return render(status: 200, contentType: "application/json") {}
+        if (fileUploadService.savePhoto(photo, Folder.BIKEFIRSTUSER, bike.id) || grailsApplication.config.com.dropbyke.debug) {
+            return render(status: 200, contentType: "application/json") {
+                [
+                        "bike": bike
+                ]
+            }
         } else {
             return render(status: 500, contentType: "application/json") { ["error": "Filed to save user photo"] }
         }
@@ -383,16 +403,19 @@ class BikesController {
      * Using haversine formula - http://en.wikipedia.org/wiki/Haversine_formula
      * @return
      */
-    private Map calcGeoBoundsFromSphereDistance(double lat, double lon, double dist) {
+    private double dist(double lat1, double lng1, double lat2, double lng2) {
 
         def R = 6371000.0 //Earth radius
-        def D = 2.0 * R //Earth diam
 
-        lat = lat * Math.PI / 180
-        lon = lon * Math.PI / 180
+        lat1 = lat1 * Math.PI / 180
+        lng1 = lng1 * Math.PI / 180
+        lat2 = lat2 * Math.PI / 180
+        lng2 = lng2 * Math.PI / 180
 
-        def deltaLng = 2.0 * asin(sin(dist / D) / cos(lat))
-        def deltaLat = dist / R
+        double sinLat2 = Math.pow(Math.sin(0.5 * (lat2 - lat1)), 2)
+        double sinLng2 = Math.pow(Math.sin(0.5 * (lng2 - lng1)), 2)
+
+        2.0 * R * Math.asin(Math.sqrt(sinLat2 + sinLng2 * Math.cos(lat1) * Math.cos(lat2)))
 
     }
 }

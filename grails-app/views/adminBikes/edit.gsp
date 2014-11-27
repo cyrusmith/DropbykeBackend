@@ -82,7 +82,7 @@
 					<g:set var="isactive" value="true"/>
 				</g:if>
 				<g:else>
-					<g:set var="isactive" value="false"/>
+					<g:set var="isactive" value="${active}"/>
 				</g:else>
 				<g:checkBox name="active" value="1" checked="${isactive}" id="active" />
 			</div>
