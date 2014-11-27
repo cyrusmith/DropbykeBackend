@@ -12,4 +12,5 @@
 //= require bower_components/datetimepicker/jquery.datetimepicker.js
 
 //= require ./init.js
+//= require ./widthdraw.js
 //= require_tree location

@@ -13,7 +13,7 @@ class Account {
     def addOperation(Operation op) throws MoneyException {
         long newSum = op.changeAccountSum(sum)
         if (newSum < 0) {
-            throw new MoneyException("Not enough money to perform this operation")
+            throw new MoneyException(message: "Not enough money to perform this operation")
         }
         sum = newSum
         this.addToOperations(op)

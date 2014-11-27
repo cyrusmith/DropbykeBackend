@@ -91,7 +91,7 @@ class LoginService {
 		user.isOnline = true
 		user.save()
 
-		def principal = [username: aPhone]
+		def principal = [username: user.username]
 		tokenStorageService.storeToken(tokenValue, principal)
 
 		return tokenValue

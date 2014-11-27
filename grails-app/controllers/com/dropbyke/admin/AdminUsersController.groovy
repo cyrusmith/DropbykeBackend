@@ -1,5 +1,7 @@
 package com.dropbyke.admin
 
+import com.dropbyke.money.Account
+
 import java.util.regex.Pattern;
 
 import com.dropbyke.LoginService;
@@ -13,106 +15,112 @@ import grails.transaction.Transactional;
 @Secured(["ROLE_ADMIN"])
 class AdminUsersController {
 
-	def loginService
+    def loginService
 
-	def index() {
-		List users = User.list(params)
-		[users: users, usersCount: User.count()]
-	}
+    def index() {
+        List users = User.list(params)
+        [users: users, usersCount: User.count()]
+    }
 
-	@Transactional
-	def edit() {
+    @Transactional
+    def edit() {
 
-		if(request.get) {
-			if(params.containsKey("id")) {
-				User user = User.get(params.getLong("id"))
-				if(!user) {
-					return sendError(code:400)
-				}
-				return render(view: 'edit', model: [
-					id: params.id,
-					phone: user.phone,
-					name: user.name,
-					email: user.email
-				])
-			}
-			else {
-				return render(view: 'edit')
-			}
-		}
+        if (request.get) {
+            if (params.containsKey("id")) {
+                User user = User.get(params.getLong("id"))
+                if (!user) {
+                    return sendError(code: 400)
+                }
+                return render(view: 'edit', model: [
+                        "user": user
+                ])
+            } else {
+                return render(view: 'edit')
+            }
+        }
 
-		if(!params.phone) {
-			flash.error = "Phone not set"
-			return render(view: 'edit', model: [
-				id: params.id,
-				name: params.name,
-				email: params.email
-			])
-		}
+        Account account = User.load(params.getLong("id")).account
 
-		String phone = params.phone.replaceAll(Pattern.compile("[^0-9]"), "")
+        if (!params.phone) {
+            flash.error = "Phone not set"
+            return render(view: 'edit', model: [
+                    "user": [
+                            id     : params.id,
+                            name   : params.name,
+                            phone  : params.phone,
+                            email  : params.email,
+                            account: account
+                    ]
+            ])
+        }
 
-		if(phone.size()!=11) {
-			flash.error = "Illegal phone format. Expected 11-digit input"
-			return render(view: 'edit', model: [
-				id: params.id,
-				phone: params.phone,
-				name: params.name,
-				email: params.email
-			])
-		}
+        String phone = params.phone.replaceAll(Pattern.compile("[^0-9]"), "")
 
-		User user
+        if (phone.size() != 11) {
+            flash.error = "Illegal phone format. Expected 11-digit input"
+            return render(view: 'edit', model: [
+                    "user": [
+                            id     : params.id,
+                            phone  : params.phone,
+                            name   : params.name,
+                            email  : params.email,
+                            account: account
+                    ]
+            ])
+        }
 
-		if(params.id) {
-			user = User.get(params.id)
-			if(!user) {
-				return sendError(code:404)
-			}
+        User user
 
-			if(user.phone!=phone) {
-				def existingUser = User.where { phone == phone }
-				if(existingUser) {
-					flash.error = "User with phone " + phone + " already exists"
-					return render(view: 'edit', model: [
-						id: params.id,
-						phone: params.phone,
-						name: params.name,
-						email: params.email
-					])
-				}
-			}
-		}
-		else {
-			user = loginService.register(phone)
-		}
+        if (params.id) {
+            user = User.get(params.id)
+            if (!user) {
+                return sendError(code: 404)
+            }
 
-		user.phone = phone
-		user.name = params.name
-		user.email = params.email
+            if (user.phone != phone) {
+                def existingUser = User.where { phone == phone }
+                if (existingUser) {
+                    flash.error = "User with phone " + phone + " already exists"
+                    return render(view: 'edit', model: [
+                            "user": [
+                                    id     : params.id,
+                                    phone  : params.phone,
+                                    name   : params.name,
+                                    email  : params.email,
+                                    account: account
+                            ]
+                    ])
+                }
+            }
+        } else {
+            user = loginService.register(phone)
+        }
 
-		if(user.save()) {
-			flash.message = "User created successfully"
-			redirect(action: 'index')
-		}
-		else {
-			flash.error = "Failed to create user"
-			return render(view: 'edit', model: [
-				id: params.id,
-				phone: params.phone,
-				name: params.name,
-				email: params.email
-			])
-		}
-	}
+        user.phone = phone
+        user.name = params.name
+        user.email = params.email
 
-	@Transactional
-	def add() {
-		return this.edit()
-	}
+        if (user.save()) {
+            flash.message = "User created successfully"
+            redirect(action: 'index')
+        } else {
+            flash.error = "Failed to create user"
+            return render(view: 'edit', model: [
+                    id   : params.id,
+                    phone: params.phone,
+                    name : params.name,
+                    email: params.email
+            ])
+        }
+    }
 
-	@Transactional
-	def delete() {
+    @Transactional
+    def add() {
+        return this.edit()
+    }
+
+    @Transactional
+    def delete() {
 /*
 		if(!params.id) return sendError(code: 400)
 		
@@ -130,6 +138,7 @@ class AdminUsersController {
 			flash.message = "User deleted"
 		}
 		redirect(action:"index")
-	*/	
-	}
+	*/
+    }
+
 }

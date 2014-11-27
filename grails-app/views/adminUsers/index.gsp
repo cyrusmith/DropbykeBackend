@@ -28,7 +28,7 @@
     </tr>
 
     </thead>
-    ${users}
+
     <g:each in="${users}" var="user">
         <tr>
             <td><g:link action="edit" id="${user.id}">
@@ -41,7 +41,9 @@
                 ${user.name}
             </td>
             <td>
-                ${user.account.sum}
+                ${user.account.sum/100} <g:link action="index" controller="adminOperations" params="[userId: user.id]">
+                    View operations
+                </g:link>
             </td>
             <td><g:if test="${user.isOnline}">
                 <span

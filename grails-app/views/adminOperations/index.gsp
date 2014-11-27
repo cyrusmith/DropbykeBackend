@@ -3,16 +3,15 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
     <meta name="layout" content="admin"/>
-    <title>Operations</title>
+    <title>Sharing operations</title>
 </head>
 
 <body>
 
 <h2>
-    Operations <g:if test="${user}">
+    Sharing operations <g:if test="${user}">
     for user
-    <a type="button" class="btn btn-primary"
-       href="<g:createLink action="edit" id="${user.id}" controller="adminUsers"/>">${user.name} ${user.phone}</a>
+    <a href="<g:createLink action="edit" id="${user.id}" controller="adminUsers"/>">${user.name} ${user.phone}</a>
 
 </g:if>
 
@@ -22,45 +21,49 @@
 <table class="table users-table table-striped">
     <thead>
     <tr>
-        <g:sortableColumn property="phone" title="Phone"/>
-        <g:sortableColumn property="email" title="Email"/>
-        <g:sortableColumn property="name" title="Name"/>
-        <g:sortableColumn property="account.sum" title="Sum to pay, \$"/>
-        <g:sortableColumn property="isOnline" title="Status"/>
-        <g:sortableColumn property="bikes.count" title="Bikes"/>
-        <!--  <th>Actions</th>-->
+        <g:sortableColumn property="op.account.user" title="User"/>
+        <g:sortableColumn property="class" title="Type"/>
+        <g:sortableColumn property="amount" title="Amount"/>
+        <g:sortableColumn property="sumBefore" title="Account before"/>
+        <g:sortableColumn property="sumAfter" title="Account after"/>
+        <g:sortableColumn property="created" title="Date"/>
     </tr>
 
     </thead>
-    ${users}
-    <g:each in="${users}" var="user">
+    <g:each in="${operations}" var="op">
         <tr>
-            <td><g:link action="edit" id="${user.id}">
-                ${user.username}
-            </g:link></td>
             <td>
-                ${user.email ?: "not set"}
+                <g:link controller="adminUsers" action="edit" id="${op.account.user.id}">
+                    ${op.account.user.name} ${op.account.user.phone}
+                </g:link>
             </td>
             <td>
-                ${user.name}
+                <g:if test="${op instanceof com.dropbyke.money.CheckoutOperation}">
+                    Income
+                </g:if>
+                <g:elseif test="${op instanceof com.dropbyke.money.WithdrawOperation}">
+                    Widthdraw
+                </g:elseif>
             </td>
             <td>
-                ${user.account.sum}
+                <g:formatNumber number="${op.amount / 100.0}" type="number" maxFractionDigits="2"/>
+
             </td>
-            <td><g:if test="${user.isOnline}">
-                <span
-                        class="glyphicon glyphicon-user user-status-online text-success"></span>
-            </g:if> <g:else>
-                <span
-                        class="glyphicon glyphicon-user user-status-offline text-danger"></span>
-            </g:else></td>
-            <td><g:link action="index" controller="adminBikes" params="[userId: user.id]">
-                ${user.bikes.size()}
-            </g:link></td>
+            <td>
+                <g:formatNumber number="${op.sumBefore / 100.0}" type="number" maxFractionDigits="2"/>
+
+            </td>
+            <td>
+                <g:formatNumber number="${op.sumAfter / 100.0}" type="number" maxFractionDigits="2"/>
+
+            </td>
+            <td>
+                ${op.created}
+            </td>
         </tr>
     </g:each>
 </table>
-<g:paginate total="${usersCount}"/>
+<g:paginate total="${opsCount}"/>
 
 </body>
 </html>

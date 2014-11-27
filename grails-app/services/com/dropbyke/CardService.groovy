@@ -73,7 +73,7 @@ class CardService {
         }
     }
 
-    def checkout(long userId, long rideId, long amount) {
+    def checkout(long userId, long rideId, long amount) throws Exception {
 
         Stripe.apiKey = grailsApplication.config.com.dropbyke.stripeApiKey;
 
@@ -81,8 +81,13 @@ class CardService {
             throw new IllegalArgumentException("Amount is too small");
         }
 
-        User user = User.get(userId)
-        Ride ride = Ride.get(rideId)
+        User user
+        Ride ride
+
+        Ride.withTransaction {
+            user = User.get(userId)
+            ride = Ride.get(rideId)
+        }
 
         if (!user) {
             throw new IllegalArgumentException("Could not find user");
@@ -90,6 +95,10 @@ class CardService {
 
         if (!ride) {
             throw new IllegalArgumentException("Could not find ride");
+        }
+
+        if (ride.charged) {
+            throw new IllegalStateException("Ride already charged");
         }
 
         if (user.cards.isEmpty()) {
@@ -102,19 +111,12 @@ class CardService {
             stripeIds.add(card.stripeCustomerId)
         }
 
-        try {
-            String stripeChargeId = chargeStripe(stripeIds, amount, user.phone)
-            if (stripeChargeId) {
-                accountService.addCheckout(user.id, amount, stripeChargeId)
-                ride.charged = true
-                ride.save()
-            }
-        }
-        catch (Exception e) {
-
+        String stripeChargeId = chargeStripe(stripeIds, amount, user.phone)
+        println stripeChargeId
+        if (stripeChargeId) {
+            accountService.addCheckout(ride.id, stripeChargeId)
         }
 
-        return false
     }
 
     String chargeStripe(List stripeIds, long amount, String userphone) {

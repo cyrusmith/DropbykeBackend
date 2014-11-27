@@ -78,8 +78,13 @@
 			
 			<div class="form-group">
 				<label for="active">Active (sharing)</label>
-				<g:checkBox name="active" value="1" checked="${active}"
-					id="active" />
+				<g:if test="${!id}">
+					<g:set var="isactive" value="true"/>
+				</g:if>
+				<g:else>
+					<g:set var="isactive" value="false"/>
+				</g:else>
+				<g:checkBox name="active" value="1" checked="${isactive}" id="active" />
 			</div>
 
 			<div class="form-group">

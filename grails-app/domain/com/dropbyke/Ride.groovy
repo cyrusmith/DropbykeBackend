@@ -20,7 +20,8 @@ class Ride {
 	boolean charged = false
 	
 	long sum = 0
-	
+	long sumCheckout = 0
+
 	int distance = 0
 
 	static hasMany = [paths: Path]

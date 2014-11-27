@@ -3,12 +3,17 @@ package com.dropbyke.money
 abstract class Operation {
 
     private static final Date NULL_DATE = new Date(0)
+    public static final String MODEL_NONE = "NONE"
+    public static final String MODEL_RIDE = "RIDE"
 
     static belongsTo = [account: Account]
 
     long amount
     long sumBefore
     long sumAfter
+
+    String model = MODEL_NONE
+    long modelId = 0L
 
     Date created = NULL_DATE
 

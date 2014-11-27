@@ -28,6 +28,9 @@ class UrlMappings {
 		"/api/share/bike/$id"(controller: "bikes", action: "bikeInfo", method: "GET")
 		"/api/share/bike/$id/userphoto"(controller: "bikes", action: "addUserPhoto", method: "POST")
 
+		"/api/share/history"(controller: "rides", action: "listOwnersRides", method: "GET")
+		"/api/share/history/$id"(controller: "rides", action: "viewOwnersRide", method: "GET")
+
 		"/admin/$controller/$action?/$id?(.$format)?"{ constraints { // apply constraints here
 			}  }
 
