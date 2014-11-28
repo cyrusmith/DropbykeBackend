@@ -77,21 +77,6 @@
       <foreign-key name="FK_bghvg4xo76su71a9k40s0rplq" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
       <index name="FK_bghvg4xo76su71a9k40s0rplq" unique="false" columns="user_id"/>
     </table>
-    <table name="charge" schema="" catalog="dropbike" type="TABLE">
-      <column name="id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5" autoIncrement="true"/>
-      <column name="version" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
-      <column name="amount" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
-      <column name="card_number" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
-      <column name="ride_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
-      <column name="stripe_charge_id" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
-      <column name="timestamp" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
-      <column name="user_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
-      <primary-key name="PRIMARY" columns="id"/>
-      <foreign-key name="FK_rf4luejj74eh02aan6lsfh8a6" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
-      <foreign-key name="FK_9pfivyijy30fny2qnw1gta91c" columns="ride_id" ref-table="ride" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
-      <index name="FK_9pfivyijy30fny2qnw1gta91c" unique="false" columns="ride_id"/>
-      <index name="FK_rf4luejj74eh02aan6lsfh8a6" unique="false" columns="user_id"/>
-    </table>
     <table name="databasechangelog" schema="" catalog="dropbike" type="TABLE">
       <column name="ID" sqlType="VARCHAR" precision="63" scale="0" nullable="false" jdbcType="12"/>
       <column name="AUTHOR" sqlType="VARCHAR" precision="63" scale="0" nullable="false" jdbcType="12"/>
@@ -156,13 +141,10 @@
       <column name="sum" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="user_id" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="sum_checkout" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
-      <column name="has_photo" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
-      <column name="lock_password" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
       <foreign-key name="FK_6monxh6jdvoxv45pepuj2xu2f" columns="bike_id" ref-table="bike" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
       <foreign-key name="FK_t1j9pjna87g6lq08ng7w96d4j" columns="user_id" ref-table="user" ref-schema="" ref-catalog="dropbike" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
       <exported-key name="FK_dsvbu4oumu91oxeuhyqk7bbm5" table="bike_rating" schema="" catalog="dropbike" columns="ride_id"/>
-      <exported-key name="FK_9pfivyijy30fny2qnw1gta91c" table="charge" schema="" catalog="dropbike" columns="ride_id"/>
       <exported-key name="FK_h7ptnjsr8ltpe5n7xdcobnyg3" table="path" schema="" catalog="dropbike" columns="ride_id"/>
       <index name="FK_6monxh6jdvoxv45pepuj2xu2f" unique="false" columns="bike_id"/>
       <index name="FK_t1j9pjna87g6lq08ng7w96d4j" unique="false" columns="user_id"/>
@@ -191,18 +173,11 @@
       <column name="phone" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <column name="share_facebook" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
       <column name="username" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
-      <column name="cardcvc" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
-      <column name="card_expire" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
-      <column name="card_name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
-      <column name="card_number" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
-      <column name="card_verified" sqlType="BIT" precision="1" scale="0" nullable="false" jdbcType="-7"/>
-      <column name="stripe_customer_id" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
       <exported-key name="FK_h6dr47em6vg85yuwt4e2roca4" table="account" schema="" catalog="dropbike" columns="user_id"/>
       <exported-key name="FK_h3jrbfm2ljuc12a1th1yuekhl" table="bike" schema="" catalog="dropbike" columns="user_id"/>
       <exported-key name="FK_6mrke3a0kbaxjte756fhm92sn" table="bike_rating" schema="" catalog="dropbike" columns="user_id"/>
       <exported-key name="FK_bghvg4xo76su71a9k40s0rplq" table="card" schema="" catalog="dropbike" columns="user_id"/>
-      <exported-key name="FK_rf4luejj74eh02aan6lsfh8a6" table="charge" schema="" catalog="dropbike" columns="user_id"/>
       <exported-key name="FK_t1j9pjna87g6lq08ng7w96d4j" table="ride" schema="" catalog="dropbike" columns="user_id"/>
       <exported-key name="FK_apcc8lxk2xnug8377fatvbn04" table="user_role" schema="" catalog="dropbike" columns="user_id"/>
       <index name="username_uniq_1416378990936" unique="true" columns="username"/>
