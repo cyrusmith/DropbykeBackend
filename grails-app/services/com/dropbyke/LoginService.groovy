@@ -99,9 +99,10 @@ class LoginService {
 
 	public boolean logout(String aPhone) {
 
-		def tokens = AuthenticationToken.where { username: aPhone }
+		def tokens = AuthenticationToken.where { username: aPhone }.list()
 
 		User user = User.findByPhone(aPhone)
+
 		if(user) {
 			user.isOnline = false
 			user.save()
@@ -111,6 +112,7 @@ class LoginService {
 
 		try {
 			for(def token in tokens) {
+				println "token; ${token}"
 				token.delete()
 			}
 			return true

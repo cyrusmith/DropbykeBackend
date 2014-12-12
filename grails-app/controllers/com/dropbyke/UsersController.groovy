@@ -1,295 +1,294 @@
 package com.dropbyke
 
+import com.dropbyke.FileUploadService.Folder
+import com.dropbyke.command.FacebookPhotoDownloadCommand
+import com.dropbyke.command.FacebookRegisterCommand
 import grails.plugin.springsecurity.annotation.Secured
-import grails.transaction.Transactional;
-import groovy.util.logging.Log4j;
-
+import grails.transaction.Transactional
+import groovy.util.logging.Log4j
 import org.codehaus.groovy.grails.web.json.JSONObject
-
-import com.dropbyke.FileUploadService.Folder;
-import com.odobo.grails.plugin.springsecurity.rest.token.generation.TokenGenerator;
-import com.odobo.grails.plugin.springsecurity.rest.token.storage.TokenStorageService;
+import org.springframework.validation.FieldError
 
 @Log4j
 class UsersController {
 
-	def phoneService
-	def loginService
-	def springSecurityService
-	def userService
-	def fileUploadService
-	def facebookService
+    def phoneService
+    def loginService
+    def springSecurityService
+    def userService
+    def fileUploadService
+    def facebookService
+    def jmsService
+    def messageSource
 
-	static allowedMethods = [registerPhone:'POST']
+    static allowedMethods = [registerPhone: 'POST']
 
-	@Secured(['permitAll'])
-	def loginFacebook() {
+    @Secured(['permitAll'])
+    def loginFacebook(FacebookRegisterCommand cmd) {
 
-		JSONObject data = request.JSON
-		String uid = data.has("uid")?data.getString("uid"):null
-		String token = data.has("token")?data.getString("token"):null
+        if (cmd.hasErrors()) {
+            List msgs = []
+            if (cmd.errors.allErrors.size() > 0) {
+                cmd.errors.allErrors.each { FieldError error ->
+                    msgs.add(messageSource.getMessage(error, Locale.default))
+                }
+            }
+            return render(status: 400, contentType: "application/json") {
+                ["error": msgs.size() > 0 ? msgs[0] : "Invalid params", "errors": msgs]
+            }
+        }
 
-		if(!uid || !token) {
-			return render (status: 400, contentType:"application/json") { ["error": "Invalid params"] }
-		}
+        try {
 
-		try {
+            Map userInfo = facebookService.getUserInfo(cmd.token)
 
-			Map userInfo = facebookService.getUserInfo(token)
+            if (!userInfo && userInfo["id"]) {
+                return render(status: 500, contentType: "application/json") {
+                    ["error": "Failed to get info from facebook"]
+                }
+            }
 
-			if(!userInfo && userInfo["id"]) {
-				return render (status: 500, contentType:"application/json") { ["error": "Failed to get info from facebook"] }
-			}
+            User user = loginService.registerFacebook(cmd.uid, userInfo["name"] ? userInfo["name"] : "", userInfo["email"] ? userInfo["email"] : "")
 
-			User user = loginService.registerFacebook(uid, userInfo["name"]?userInfo["name"]:"", userInfo["email"]?userInfo["email"]:"")
+            if (!user) {
+                return render(status: 500, contentType: "application/json") { ["error": "Failed register new user"] }
+            }
 
-			if(!user) {
-				return render (status: 500, contentType:"application/json") { ["error": "Failed register new user"] }
-			}
+            if (!fileUploadService.checkPhotoExists(Folder.USERS, user.id)) {
+                jmsService.send(service: 'facebook', method: 'downloadProfilePhoto', new FacebookPhotoDownloadCommand(userId: user.id, token: cmd.token))
+            }
 
-			if(!fileUploadService.checkPhotoExists(Folder.USERS, user.id)) {
+            try {
+                String tokenValue = loginService.loginFacebook(userInfo["id"])
 
-				try {
-					facebookService.downloadPhoto(user.id, token)
-				}
-				catch(e) {
-					log.error("Error downloading image from facebook " + e.message)
-					println "Error downloading image from facebook " + e.message
-				}
-			}
+                userInfo = userService.getUserInfo(user.id)
 
+                render(status: 200, contentType: "application/json") {
+                    [
+                            "user_info"   : userInfo,
+                            "access_token": tokenValue
+                    ]
+                }
+            }
+            catch (e) {
+                return render(status: 500, contentType: "application/json") { ["error": e.message] }
+            }
+        }
+        catch (e) {
+            log.error e.message
+            return render(status: 500, contentType: "application/json") { ["error": "Error during request"] }
+        }
+    }
 
-			try {
-				String tokenValue = loginService.loginFacebook(userInfo["id"])
+    @Secured(['permitAll'])
+    def sendSMS() {
 
-				userInfo = userService.getUserInfo(user.id)
+        JSONObject data = request.JSON
 
-				render (status: 200, contentType:"application/json") {
-					[
-						"user_info": userInfo,
-						"access_token": tokenValue
-					]
-				}
-			}
-			catch(e) {
-				return render (status: 500, contentType:"application/json") { ["error": e.message] }
-			}
-		}
-		catch(e) {
-			return render (status: 500, contentType:"application/json") { ["error": "Error during request"] }
-		}
-	}
+        String phone = data.has("phone") ? data.getString("phone") : null
 
-	@Secured(['permitAll'])
-	def sendSMS() {
+        if (!phone) {
+            return render(status: 400, contentType: "application/json") { ["error": "Phone not set"] }
+        }
 
-		JSONObject data = request.JSON
+        String error = "SMS submission failed"
+        try {
+            String key = phoneService.sendSMS(phone)
+            if (key) {
+                return render(status: 200, contentType: "application/json") { ["request_key": key] }
+            } else {
+                error = "Could not get response from SMS service"
+            }
+        }
+        catch (Exception e) {
+            println e.message
+            error = e.message
+        }
 
-		String phone = data.has("phone")?data.getString("phone"):null
+        return render(status: 500, contentType: "application/json") { ["error": error] }
+    }
 
-		if(!phone) {
-			return render (status: 400, contentType:"application/json") { ["error": "Phone not set"] }
-		}
+    @Secured(['ROLE_USER'])
+    def verifySMSCode() {
+        JSONObject data = request.JSON
 
-		String error = "SMS submission failed"
-		try {
-			String key = phoneService.sendSMS(phone)
-			if(key) {
-				return render (status: 200, contentType:"application/json") { ["request_key": key] }
-			}
-			else {
-				error = "Could not get response from SMS service"
-			}
-		}
-		catch(Exception e) {
-			println e.message
-			error = e.message
-		}
+        String code = data.has("code") ? data.getString("code") : null
+        String phone = data.has("phone") ? data.getString("phone") : null
+        String key = data.has("verify_key") ? data.getString("verify_key") : null
 
-		return render (status: 500, contentType:"application/json") { ["error": error] }
-	}
+        if (!code) {
+            return render(status: 400, contentType: "application/json") { ["error": "Code not set"] }
+        }
 
-	@Secured(['ROLE_USER'])
-	def verifySMSCode() {
-		JSONObject data = request.JSON
+        if (!key) {
+            return render(status: 400, contentType: "application/json") { ["error": "Key not set"] }
+        }
 
-		String code = data.has("code")?data.getString("code"):null
-		String phone = data.has("phone")?data.getString("phone"):null
-		String key = data.has("verify_key")?data.getString("verify_key"):null
+        try {
+            if (phoneService.verifySMSCode(phone, code, key)) {
+                def authenticatedUser = springSecurityService.loadCurrentUser()
+                if (!userService.setPhone(authenticatedUser.id, phone)) {
+                    return render(status: 500, contentType: "application/json") {
+                        ["error": "Could not update user's phone number."]
+                    }
+                }
 
-		if(!code) {
-			return render (status: 400, contentType:"application/json") { ["error": "Code not set"] }
-		}
+                def userInfo = userService.getUserInfo(authenticatedUser.id)
+                render(status: 200, contentType: "application/json") {
+                    [
+                            "user_info": userInfo
+                    ]
+                }
+            } else {
+                return render(status: 400, contentType: "application/json") { ["error": "Invalid code"] }
+            }
+        }
+        catch (e) {
+            return render(status: 500, contentType: "application/json") { ["error": e.message] }
+        }
+    }
 
-		if(!key) {
-			return render (status: 400, contentType:"application/json") { ["error": "Key not set"] }
-		}
+    @Secured(['permitAll'])
+    def verifySMSCodeAndRegister() {
 
-		try {
-			if(phoneService.verifySMSCode(phone, code, key)) {
-				def authenticatedUser = springSecurityService.loadCurrentUser()
-				if(!userService.setPhone(authenticatedUser.id, phone)) {
-					return render (status: 500, contentType:"application/json") { ["error": "Could not update user's phone number."] }
-				}
+        JSONObject data = request.JSON
 
-				def userInfo = userService.getUserInfo(authenticatedUser.id)
-				render (status: 200, contentType:"application/json") {
-					[
-						"user_info": userInfo
-					]
-				}
-			}
-			else {
-				return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
-			}
-		}
-		catch(e) {
-			return render (status: 500, contentType:"application/json") { ["error": e.message] }
-		}
-	}
+        String code = data.has("code") ? data.getString("code") : null
+        String phone = data.has("phone") ? data.getString("phone") : null
+        String key = data.has("verify_key") ? data.getString("verify_key") : null
 
-	@Secured(['permitAll'])
-	def verifySMSCodeAndRegister() {
+        if (!code) {
+            return render(status: 400, contentType: "application/json") { ["error": "Code not set"] }
+        }
 
-		JSONObject data = request.JSON
+        if (!key) {
+            return render(status: 400, contentType: "application/json") { ["error": "Key not set"] }
+        }
 
-		String code = data.has("code")?data.getString("code"):null
-		String phone = data.has("phone")?data.getString("phone"):null
-		String key = data.has("verify_key")?data.getString("verify_key"):null
+        try {
+            if (phoneService.verifySMSCode(phone, code, key)) {
+                User user = loginService.register(phone)
+                String tokenValue = loginService.loginPhone(user.phone)
+                def userInfo = userService.getUserInfo(user.id)
+                render(status: 200, contentType: "application/json") {
+                    [
+                            "user_info"   : userInfo,
+                            "access_token": tokenValue
+                    ]
+                }
+            } else {
+                return render(status: 400, contentType: "application/json") { ["error": "Invalid code"] }
+            }
+        }
+        catch (e) {
+            log.error e.getClass()
+            log.error e.message
+            return render(status: 500, contentType: "application/json") { ["error": e.message] }
+        }
+    }
 
-		if(!code) {
-			return render (status: 400, contentType:"application/json") { ["error": "Code not set"] }
-		}
+    @Secured(['ROLE_USER'])
+    def viewProfile() {
 
-		if(!key) {
-			return render (status: 400, contentType:"application/json") { ["error": "Key not set"] }
-		}
+        def authenticatedUser = springSecurityService.loadCurrentUser()
+        def info = userService.getUserInfo(authenticatedUser.id)
+        info["timestamp"] = System.currentTimeMillis()
 
-		try {
-			if(phoneService.verifySMSCode(phone, code, key)) {
-				User user = loginService.register(phone)
-				String tokenValue = loginService.loginPhone(user.phone)
-				def userInfo = userService.getUserInfo(user.id)
-				render (status: 200, contentType:"application/json") {
-					[
-						"user_info": userInfo,
-						"access_token": tokenValue
-					]
-				}
-			}
-			else {
-				return render (status: 400, contentType:"application/json") { ["error": "Invalid code"] }
-			}
-		}
-		catch(e) {
-			log.error e.getClass()
-			log.error e.message
-			return render (status: 500, contentType:"application/json") { ["error": e.message] }
-		}
-	}
+        boolean hasPhoto = false
+        if (info.ride) {
+            hasPhoto = fileUploadService.checkPhotoExists(Folder.RIDES, info.ride.id)
+        }
 
-	@Secured(['ROLE_USER'])
-	def viewProfile() {
+        grails.converters.JSON.registerObjectMarshaller(Ride, { Ride ride ->
+            return [
+                    id          : ride.id,
+                    charged     : ride.charged,
+                    complete    : ride.complete,
+                    distance    : ride.distance,
+                    message     : ride.message,
+                    startAddress: ride.startAddress,
+                    startLat    : ride.startLat,
+                    startLng    : ride.startLng,
+                    startTime   : ride.startTime,
+                    stopAddress : ride.stopAddress,
+                    stopLat     : ride.stopLat,
+                    stopLng     : ride.stopLng,
+                    stopTime    : ride.stopTime,
+                    sum         : ride.sum,
+                    hasPhoto    : hasPhoto
+            ]
+        })
 
-		def authenticatedUser = springSecurityService.loadCurrentUser()
-		def info = userService.getUserInfo(authenticatedUser.id)
-		info["timestamp"] = System.currentTimeMillis()
+        render(status: 200, contentType: "application/json") { info }
+    }
 
-		boolean hasPhoto = false
-		if(info.ride) {
-			hasPhoto = fileUploadService.checkPhotoExists(Folder.RIDES, info.ride.id)
-		}
+    @Secured(['ROLE_USER'])
+    def logout() {
+        User authUser = springSecurityService.loadCurrentUser()
+        if (loginService.logout(authUser.phone)) {
+            return render(status: 200, contentType: "application/json") {
+                []
+            }
+        }
+        return render(status: 500, contentType: "application/json") {
+        }
+    }
 
-		grails.converters.JSON.registerObjectMarshaller(Ride, { Ride ride ->
-			return [
-				id : ride.id,
-				charged: ride.charged,
-				complete: ride.complete,
-				distance: ride.distance,
-				message: ride.message,
-				startAddress: ride.startAddress,
-				startLat: ride.startLat,
-				startLng: ride.startLng,
-				startTime: ride.startTime,
-				stopAddress: ride.stopAddress,
-				stopLat: ride.stopLat,
-				stopLng: ride.stopLng,
-				stopTime: ride.stopTime,
-				sum: ride.sum,
-				hasPhoto: hasPhoto
-			]
-		})
+    @Secured(['ROLE_USER'])
+    @Transactional
+    def updateProfile() {
+        JSONObject data = request.JSON
 
-		render (status: 200, contentType:"application/json") { info }
-	}
+        User authUser = springSecurityService.loadCurrentUser()
+        def name = data.has("name") ? data.getString("name") : ""
+        def email = data.has("email") ? data.getString("email") : ""
+        def shareFacebook = data.has("shareFacebook") ? data.getBoolean("shareFacebook") : true
 
-	@Secured(['ROLE_USER'])
-	def logout() {
-		def authenticatedUser = springSecurityService.loadCurrentUser()
-		if(loginService.logout(authenticatedUser.phone)) {
-			return render (status: 200, contentType:"application/json") {
-			}
-		}
-		return render (status: 500, contentType:"application/json") {
-		}
-	}
+        User user = User.get(authUser.id)
 
-	@Secured(['ROLE_USER'])
-	@Transactional
-	def updateProfile() {
-		JSONObject data = request.JSON
+        if (!user) {
+            return render(status: 401, contentType: "application/json") { ["error": "User not authenticated"] }
+        }
 
-		def authenticatedUser = springSecurityService.loadCurrentUser()
-		def name = data.has("name")?data.getString("name"):""
-		def email = data.has("email")?data.getString("email"):""
-		def shareFacebook = data.has("shareFacebook")?data.getBoolean("shareFacebook"):true
+        if (name) {
+            user.name = name
+        }
 
-		User user = User.get(authenticatedUser.id)
+        if (email) {
+            user.email = email
+        }
 
-		if(!user) {
-			return	render (status: 401, contentType:"application/json") { ["error": "User not authenticated"] }
-		}
+        user.shareFacebook = shareFacebook
 
-		if(name) {
-			user.name = name
-		}
+        if (email || name) {
+            user.editedOnce = true
+            if (user.save()) {
+                return render(status: 200, contentType: "application/json") { ["profile": user] }
+            } else {
+                return render(status: 500, contentType: "application/json") { ["error": "Could not save user"] }
+            }
+        }
+        return render(status: 400, contentType: "application/json") { ["error": "No arguments set"] }
+    }
 
-		if(email) {
-			user.email = email
-		}
-
-		user.shareFacebook = shareFacebook
-
-		if(email || name) {
-			user.editedOnce = true
-			if(user.save()) {
-				return	render (status: 200, contentType:"application/json") { ["profile": user] }
-			}
-			else {
-				return	render (status: 500, contentType:"application/json") { ["error": "Could not save user"] }
-			}
-		}
-		return	render (status: 400, contentType:"application/json") { ["error": "No arguments set"] }
-	}
-
-	@Secured(['ROLE_USER'])
-	def uploadPhoto() {
-		def authenticatedUser = springSecurityService.loadCurrentUser()
-		def photo = request.getFile('photo')
-		System.out.println "uploadPhoto"
-		System.out.println photo
-		if(photo && !photo.isEmpty()) {
-			try {
-				fileUploadService.savePhoto(photo, Folder.USERS, authenticatedUser.id)
-				return render (status: 200, contentType:"application/json") {
-				}
-			}
-			catch(e) {
-				return render (status: 500, contentType:"application/json") {
-					["error": "Failed to save uploaded file: " + e.message]
-				}
-			}
-		}
-		return render (status: 400, contentType:"application/json") { ["error": "No file"] }
-	}
+    @Secured(['ROLE_USER'])
+    def uploadPhoto() {
+        def authenticatedUser = springSecurityService.loadCurrentUser()
+        def photo = request.getFile('photo')
+        System.out.println "uploadPhoto"
+        System.out.println photo
+        if (photo && !photo.isEmpty()) {
+            try {
+                fileUploadService.savePhoto(photo, Folder.USERS, authenticatedUser.id)
+                return render(status: 200, contentType: "application/json") {
+                }
+            }
+            catch (e) {
+                return render(status: 500, contentType: "application/json") {
+                    ["error": "Failed to save uploaded file: " + e.message]
+                }
+            }
+        }
+        return render(status: 400, contentType: "application/json") { ["error": "No file"] }
+    }
 }

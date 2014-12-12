@@ -1,5 +1,9 @@
 package com.dropbyke
 
+import com.dropbyke.command.FacebookPhotoDownloadCommand
+import grails.plugin.jms.Queue
+import org.springframework.transaction.annotation.Isolation
+
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 
@@ -10,93 +14,118 @@ import org.codehaus.groovy.grails.web.json.JSONObject;
 
 import grails.transaction.Transactional
 
-@Transactional
 class FacebookService {
 
-	def getUserInfo(String token) {
+    def fileUploadService
 
-		URL html = new URL("https://graph.facebook.com/me?access_token=" + token);
-		URLConnection urlConnection = html.openConnection();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-		StringBuffer response = new StringBuffer();
-		String inputLine;
-		while ((inputLine = reader.readLine()) != null) {
-			response.append(inputLine)
-		}
-		reader.close();
+    static transactional = false
 
-		log.debug("Got from facebook " + response.toString())
-		def result = [:]
-		JSONObject json = new JSONObject(response.toString())
-		for(String key in json.keys()) {
-			result.put(key, json.get(key))
-		}
+    static exposes = ['jms']
 
-		return result
-	}
+    @Queue
+    def downloadProfilePhoto(FacebookPhotoDownloadCommand cmd) {
 
-	def downloadPhoto(long userId, String token) {
+        log.debug "Start downloadProfilePhoto"
 
-		def servletContext = ServletContextHolder.servletContext
+        if (fileUploadService.checkPhotoExists(FileUploadService.Folder.USERS, cmd.userId)) {
+            log.debug "Avatar already exists"
+            return
+        }
 
-		String path = servletContext.getRealPath("/images/users/");
+        def servletContext = ServletContextHolder.servletContext
 
-		InputStream inputStream = null
-		BufferedImage srcImg = null
-		BufferedImage bufferedThumbnail = null
+        String path = servletContext.getRealPath("/images/users/");
 
-		try {
-			URL html = new URL("https://graph.facebook.com/me/picture?type=large&access_token=" + token);
-			URLConnection urlConnection = html.openConnection();
+        File dir = new File(path)
 
-			inputStream = urlConnection.getInputStream()
-			srcImg = ImageIO.read(inputStream);
+        if (!dir.exists()) {
+            dir.mkdir()
+        }
 
-			println "Loaded: " + srcImg.getWidth()
+        InputStream inputStream = null
+        BufferedImage srcImg = null
+        BufferedImage bufferedThumbnail = null
 
-			def destWidth = 1200
+        try {
+            URL html = new URL("https://graph.facebook.com/me/picture?type=large&access_token=" + cmd.token);
+            URLConnection urlConnection = html.openConnection();
 
-			if(srcImg.getWidth() > destWidth) {
-				Image thumbnail = srcImg.getScaledInstance(destWidth, -1, Image.SCALE_SMOOTH);
-				bufferedThumbnail = new BufferedImage(thumbnail.getWidth(null),
-						thumbnail.getHeight(null),
-						BufferedImage.TYPE_INT_RGB)
-				bufferedThumbnail.getGraphics().drawImage(thumbnail, 0, 0, null);
-				ImageIO.write(bufferedThumbnail, "jpg", new File(path + "/" + userId +'.jpg'))
-			}
-			else {
-				ImageIO.write(srcImg, "jpg", new File(path + "/" + userId +'.jpg'))
-			}
-		}
-		catch(e) {
-			println e.message
-			throw e
-		}
-		finally {
+            inputStream = urlConnection.getInputStream()
+            srcImg = ImageIO.read(inputStream);
 
-			try {
-				if(inputStream) {
-					inputStream.close()
-				}
-			}
-			catch(e) {
-			}
+            log.debug "Loaded: " + srcImg.getWidth()
 
-			try {
-				if(bufferedThumbnail) {
-					bufferedThumbnail.flush()
-				}
-			}
-			catch(e) {
-			}
+            def destWidth = 1200
 
-			try {
-				if(srcImg) {
-					srcImg.flush()
-				}
-			}
-			catch(e) {
-			}
-		}
-	}
+            if (srcImg.getWidth() > destWidth) {
+                Image thumbnail = srcImg.getScaledInstance(destWidth, -1, Image.SCALE_SMOOTH);
+                bufferedThumbnail = new BufferedImage(thumbnail.getWidth(null),
+                        thumbnail.getHeight(null),
+                        BufferedImage.TYPE_INT_RGB)
+                bufferedThumbnail.getGraphics().drawImage(thumbnail, 0, 0, null);
+                ImageIO.write(bufferedThumbnail, "jpg", new File(path + "/" + cmd.userId + '.jpg'))
+            } else {
+                ImageIO.write(srcImg, "jpg", new File(path + "/" + cmd.userId + '.jpg'))
+            }
+        }
+        catch (e) {
+            log.error e.message
+            throw e
+        }
+        finally {
+
+            try {
+                if (inputStream) {
+                    inputStream.close()
+                }
+            }
+            catch (e) {
+            }
+
+            try {
+                if (bufferedThumbnail) {
+                    bufferedThumbnail.flush()
+                }
+            }
+            catch (e) {
+            }
+
+            try {
+                if (srcImg) {
+                    srcImg.flush()
+                }
+            }
+            catch (e) {
+            }
+        }
+
+    }
+
+    @Transactional
+    def getUserInfo(String token) {
+
+        URL html = new URL("https://graph.facebook.com/me?access_token=" + token);
+        URLConnection urlConnection = html.openConnection();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+        StringBuffer response = new StringBuffer();
+        String inputLine;
+        while ((inputLine = reader.readLine()) != null) {
+            response.append(inputLine)
+        }
+        reader.close();
+
+        log.debug("Got from facebook " + response.toString())
+        def result = [:]
+        JSONObject json = new JSONObject(response.toString())
+        for (String key in json.keys()) {
+            result.put(key, json.get(key))
+        }
+
+        return result
+    }
+
+    def downloadPhoto(long userId, String token) {
+
+
+    }
 }
