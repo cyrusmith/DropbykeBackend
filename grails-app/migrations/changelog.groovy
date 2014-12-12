@@ -496,18 +496,6 @@ databaseChangeLog = {
 		addForeignKeyConstraint(baseColumnNames: "user_id", baseTableName: "user_role", constraintName: "FK_apcc8lxk2xnug8377fatvbn04", deferrable: "false", initiallyDeferred: "false", referencedColumnNames: "id", referencedTableName: "user", referencesUniqueColumn: "false")
 	}
 
+	include file: 'v2.groovy'
 
-	include file: '2014.20.11.groovy'
-
-	include file: '2014.24.11.groovy'
-
-
-	include file: '26.11.2014.groovy'
-
-	include file: '26.11.2014.2.groovy'
-
-
-	include file: '26.11.2014.3.groovy'
-
-	include file: '27.11.2014.1.groovy'
 }
