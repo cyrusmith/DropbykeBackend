@@ -101,7 +101,7 @@ class UsersController {
             }
         }
         catch (Exception e) {
-            println e.message
+            log.error e.message
             error = e.message
         }
 
@@ -126,7 +126,7 @@ class UsersController {
 
         try {
             if (phoneService.verifySMSCode(phone, code, key)) {
-                def authenticatedUser = springSecurityService.loadCurrentUser()
+                User authenticatedUser = springSecurityService.loadCurrentUser()
                 if (!userService.setPhone(authenticatedUser.id, phone)) {
                     return render(status: 500, contentType: "application/json") {
                         ["error": "Could not update user's phone number."]

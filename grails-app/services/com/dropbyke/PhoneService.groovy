@@ -1,321 +1,302 @@
 package com.dropbyke
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.Authenticator;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import java.net.PasswordAuthentication;
-import java.net.URL;
+import groovy.util.logging.Log4j
+import org.codehaus.groovy.grails.web.json.JSONException
+import org.codehaus.groovy.grails.web.json.JSONObject
 
-import javax.net.ssl.HttpsURLConnection;
-
-import org.codehaus.groovy.grails.web.json.JSONException;
-import org.codehaus.groovy.grails.web.json.JSONObject;
-
-import grails.transaction.Transactional
-import groovy.util.logging.Log4j;
+import javax.net.ssl.HttpsURLConnection
 
 @Log4j
 class PhoneService {
 
-	def grailsApplication
+    def grailsApplication
 
-	class MyAuthenticator extends Authenticator {
+    class MyAuthenticator extends Authenticator {
 
-		protected PasswordAuthentication getPasswordAuthentication() {
-			return new PasswordAuthentication(grailsApplication.config.com.dropbyke.getproveApiKey,
-			"password_no_important".toCharArray());
-		}
-	}
+        protected PasswordAuthentication getPasswordAuthentication() {
+            return new PasswordAuthentication(grailsApplication.config.com.dropbyke.getproveApiKey, "password_no_important".toCharArray());
+        }
+    }
 
-	private String sendSMSRingcaptcha(phone) throws Exception {
+    private String sendSMSRingcaptcha(phone) throws Exception {
 
-		try {
-			def apiKey = grailsApplication.config.com.dropbyke.ringcaptcha.apiKey
-			def appKey = grailsApplication.config.com.dropbyke.ringcaptcha.appKey
-			CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
-			URL u = new URL("https://api.ringcaptcha.com/${appKey}/code/sms");
-			HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
-			http.setConnectTimeout(10000);
-			http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-			http.setInstanceFollowRedirects(false);
-			http.setRequestMethod("POST");
-			http.setDoOutput(true);
-			final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
-			wr.writeBytes("app_key=${appKey}&secret_key=${apiKey}&phone=${phone}&locale=en_us");
-			wr.flush();
-			wr.close();
+        try {
+            def apiKey = grailsApplication.config.com.dropbyke.ringcaptcha.apiKey
+            def appKey = grailsApplication.config.com.dropbyke.ringcaptcha.appKey
+            CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+            URL u = new URL("https://api.ringcaptcha.com/${appKey}/code/sms");
+            HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
+            http.setConnectTimeout(10000);
+            http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            http.setInstanceFollowRedirects(false);
+            http.setRequestMethod("POST");
+            http.setDoOutput(true);
+            final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
+            wr.writeBytes("app_key=${appKey}&secret_key=${apiKey}&phone=${phone}&locale=en_us");
+            wr.flush();
+            wr.close();
 
-			log.debug "sendSMS response code " + http.getResponseCode();
+            log.debug "sendSMS response code " + http.getResponseCode();
 
-			http.connect();
-			InputStream is = http.getInputStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-			StringBuilder stringBuilder = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				stringBuilder.append(line + "\n");
-			}
+            http.connect();
+            InputStream is = http.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line + "\n");
+            }
 
-			if(log.isDebugEnabled()) {
-				log.debug "received: " + stringBuilder.toString()
-			}
+            if (log.isDebugEnabled()) {
+                log.debug "received: " + stringBuilder.toString()
+            }
 
-			JSONObject json = new JSONObject(stringBuilder.toString());
+            JSONObject json = new JSONObject(stringBuilder.toString());
 
-			if(!json || !json.has("status")) {
-				throw new Exception("Failed to get response")
-			}
-			
-			if(json.getString("status") == "ERROR" && json.getString("message")=="ERROR_WAIT_TO_RETRY") {
-				
-				log.error "Need to wait a while"
-				
-				if(json.has("retry_in")) {
-					int minutes = Math.ceil(json.getInt("retry_in")/60.0)
-					log.error "Need to wait ${minutes} minutes"
-					if(!minutes) {
-						minutes = 1
-						throw new Exception("Please wait about a minute and try again")
-					}
-					throw new Exception("Please wait about ${minutes} minutes and try again")
-				}
-				
-				throw new Exception("Please wait about a minute and try again")
-				
-				
-				
-			}
-			
-			if(!json.has("token")  || !json.getString("token")) {
-				throw new Exception("Failed to get verification key")
-			}
+            if (!json || !json.has("status")) {
+                throw new Exception("Failed to get response")
+            }
 
-			return json.getString("token")
+            if (json.getString("status") == "ERROR" && json.getString("message") == "ERROR_WAIT_TO_RETRY") {
 
-		}
-		catch(JSONException e) {
-			log.error "Send SMS JSONException: "  +e.message
-			throw new Exception("Error in response. Please try again.")
-		}
-		catch(IOException e) {
-			log.error "Send SMS IOException: "  +e.message
-			throw new Exception("Error sending sms")
-		}
-	}
+                log.error "Need to wait a while"
 
-	private boolean verifySMSRingcaptcha(String phone, String code, String requestKey) throws Exception {
-		try {
+                if (json.has("retry_in")) {
+                    int minutes = Math.ceil(json.getInt("retry_in") / 60.0)
+                    log.error "Need to wait ${minutes} minutes"
+                    if (!minutes) {
+                        minutes = 1
+                        throw new Exception("Please wait about a minute and try again")
+                    }
+                    throw new Exception("Please wait about ${minutes} minutes and try again")
+                }
 
-			def apiKey = grailsApplication.config.com.dropbyke.ringcaptcha.apiKey
-			def appKey = grailsApplication.config.com.dropbyke.ringcaptcha.appKey
+                throw new Exception("Please wait about a minute and try again")
 
-			CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
-			URL u = new URL("https://api.ringcaptcha.com/${appKey}/verify");
-			HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
-			http.setConnectTimeout(10000);
-			http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-			http.setInstanceFollowRedirects(false);
-			http.setRequestMethod("POST");
-			http.setDoOutput(true);
-			final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
-			wr.writeBytes("app_key=${appKey}&secret_key=${apiKey}&phone=${phone}&code=${code}");
-			wr.flush();
-			wr.close();
 
-			if(log.isDebugEnabled()) {
-				log.debug "verifySMSCode response code " + http.getResponseCode()
-			}
+            }
 
-			http.connect();
-			InputStream is = http.getInputStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-			StringBuilder stringBuilder = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				stringBuilder.append(line + "\n");
-			}
+            if (!json.has("token") || !json.getString("token")) {
+                throw new Exception("Failed to get verification key")
+            }
 
-			if(log.isDebugEnabled()) {
-				log.debug "verifySMSCode received: " + stringBuilder.toString()
-			}
+            return json.getString("token")
 
-			JSONObject json = new JSONObject(stringBuilder.toString());
+        }
+        catch (JSONException e) {
+            log.error "Send SMS JSONException: " + e.message
+            throw new Exception("Error in response. Please try again.")
+        }
+        catch (IOException e) {
+            log.error "Send SMS IOException: " + e.message
+            throw new Exception("Error sending sms")
+        }
+    }
 
-			if(!json || !json.has("status")) {
-				throw new Exception("Failed to receive verification response")
-			}
+    private boolean verifySMSRingcaptcha(String phone, String code, String requestKey) throws Exception {
+        try {
 
-			if(json.getString("status") != "SUCCESS") {
-				return false
-			}
+            def apiKey = grailsApplication.config.com.dropbyke.ringcaptcha.apiKey
+            def appKey = grailsApplication.config.com.dropbyke.ringcaptcha.appKey
 
-			return true
-		}
-		catch(JSONException e) {
-			log.error "Verify SMS JSONException:" + e.message
-			throw new Exception("Failed to parse verification response")
-		}
-		catch(IOException e) {
-			log.error "Verify SMS IOException:" + e.message
-			throw new Exception("Failed to send verification code")
-		}
-	}
+            CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+            URL u = new URL("https://api.ringcaptcha.com/${appKey}/verify");
+            HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
+            http.setConnectTimeout(10000);
+            http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            http.setInstanceFollowRedirects(false);
+            http.setRequestMethod("POST");
+            http.setDoOutput(true);
+            final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
+            wr.writeBytes("app_key=${appKey}&secret_key=${apiKey}&phone=${phone}&code=${code}");
+            wr.flush();
+            wr.close();
 
-	private String sendSMSGetprove(String phone) throws Exception {
-		try {
+            if (log.isDebugEnabled()) {
+                log.debug "verifySMSCode response code " + http.getResponseCode()
+            }
 
-			CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
-			URL u = new URL("https://getprove.com/api/v1/verify");
-			HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
-			http.setConnectTimeout(10000);
-			http.setInstanceFollowRedirects(false);
-			Authenticator.setDefault(new MyAuthenticator());
-			http.setAllowUserInteraction(true);
-			http.setRequestMethod("POST");
-			http.setDoOutput(true);
-			final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
-			wr.writeBytes("tel=" + phone);
-			wr.flush();
-			wr.close();
+            http.connect();
+            InputStream is = http.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line + "\n");
+            }
 
-			if(log.isDebugEnabled()) {
-				log.debug "sendSMS response code " + http.getResponseCode();
-			}
+            if (log.isDebugEnabled()) {
+                log.debug "verifySMSCode received: " + stringBuilder.toString()
+            }
 
-			http.connect();
-			InputStream is = http.getInputStream();
-			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(is));
-			StringBuilder stringBuilder = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				stringBuilder.append(line + "\n");
-			}
+            JSONObject json = new JSONObject(stringBuilder.toString());
 
-			if(log.isDebugEnabled()) {
-				log.debug "sendSMS received: " + stringBuilder.toString()
-			}
+            if (!json || !json.has("status")) {
+                throw new Exception("Failed to receive verification response")
+            }
 
-			JSONObject json = new JSONObject(stringBuilder.toString());
+            if (json.getString("status") != "SUCCESS") {
+                return false
+            }
 
-			if(!json || !json.has("id")) {
-				throw new Exception("Failed to get response from sms service")
-			}
+            return true
+        }
+        catch (JSONException e) {
+            log.error "Verify SMS JSONException:" + e.message
+            throw new Exception("Failed to parse verification response")
+        }
+        catch (IOException e) {
+            log.error "Verify SMS IOException:" + e.message
+            throw new Exception("Failed to send verification code")
+        }
+    }
 
-			return json.getString("id")
+    private String sendSMSGetprove(String phone) throws Exception {
+        try {
 
-		}
-		catch(JSONException e) {
-			log.error "SendSMS JSONException:" + e.message
-			throw new Exception("Failed to parse response from sms service")
-		}
-		catch(IOException e) {
-			log.error "SendSMS IOException:" + e.message
-			throw new Exception("Failed to send response to sms service")
-		}
-	}
+            CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+            URL u = new URL("https://getprove.com/api/v1/verify");
+            HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
+            http.setConnectTimeout(10000);
+            http.setInstanceFollowRedirects(false);
+            Authenticator.setDefault(new MyAuthenticator());
+            http.setAllowUserInteraction(true);
+            http.setRequestMethod("POST");
+            http.setDoOutput(true);
+            final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
+            wr.writeBytes("tel=" + phone);
+            wr.flush();
+            wr.close();
 
-	private boolean verifySMSGetprove(String phone, String code, String requestKey) throws Exception {
-		try {
+            if (log.isDebugEnabled()) {
+                log.debug "sendSMS response code " + http.getResponseCode();
+            }
 
-			CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
-			URL u = new URL("https://getprove.com/api/v1/verify/" + requestKey + "/pin");
-			HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
-			http.setConnectTimeout(10000);
-			http.setInstanceFollowRedirects(false);
-			Authenticator.setDefault(new MyAuthenticator());
-			http.setAllowUserInteraction(true);
-			http.setRequestMethod("POST");
-			http.setDoOutput(true);
-			final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
-			wr.writeBytes("pin=" + code);
-			wr.flush();
-			wr.close();
+            http.connect();
+            InputStream is = http.getInputStream();
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(is));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line + "\n");
+            }
 
-			if(log.isDebugEnabled()) {
-				log.debug "verifySMSCode response code " + http.getResponseCode();
-			}
+            if (log.isDebugEnabled()) {
+                log.debug "sendSMS received: " + stringBuilder.toString()
+            }
 
-			http.connect();
-			InputStream is = http.getInputStream();
-			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(is));
-			StringBuilder stringBuilder = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				stringBuilder.append(line + "\n");
-			}
+            JSONObject json = new JSONObject(stringBuilder.toString());
 
-			if(log.isDebugEnabled()) {
-				log.debug "verifySMSCode received: " + stringBuilder.toString()
-			}
+            if (!json || !json.has("id")) {
+                throw new Exception("Failed to get response from sms service")
+            }
 
-			JSONObject json = new JSONObject(stringBuilder.toString());
-			
-			if(!json || !json.has("verified")) {
-				throw new Exception("Failed to get response from sms service")
-			}
-			
-			if(json.getBoolean("verified")) {
-				return true
-			}
-			
-			return false
-		}
-		catch(JSONException e) {
-			log.error "SendSMS JSONException:" + e.message
-			throw new Exception("Failed to parse response from sms service")
-		}
-		catch(IOException e) {
-			log.error "SendSMS IOException:" + e.message
-			throw new Exception("Failed to send response to sms service")
-		}
-	}
+            return json.getString("id")
 
-	String sendSMS(phone) throws Exception {
-		
-		if(grailsApplication.config.com.dropbyke.debug) {
-			return "123"
-		}
-		
-		if(log.isDebugEnabled()) {
-			log.debug "sendSMS to " + phone + " with " + grailsApplication.config.com.dropbyke.smsService
-		}
+        }
+        catch (JSONException e) {
+            log.error "SendSMS JSONException:" + e.message
+            throw new Exception("Failed to parse response from sms service")
+        }
+        catch (IOException e) {
+            log.error "SendSMS IOException:" + e.message
+            throw new Exception("Failed to send response to sms service")
+        }
+    }
 
-		if(grailsApplication.config.com.dropbyke.smsService == "ringcaptcha") {
-			return this.sendSMSRingcaptcha(phone)
-		}
-		else if (grailsApplication.config.com.dropbyke.smsService == "getprove") {
-			return this.sendSMSGetprove(phone)
-		}
-		else {
-			throw new Exception("No sms service defined")
-		}
-	}
+    private boolean verifySMSGetprove(String phone, String code, String requestKey) throws Exception {
+        try {
 
-	boolean verifySMSCode(String phone, String code, String verificationId) throws Exception {
-		
-		if(grailsApplication.config.com.dropbyke.debug) {
-			return true
-		}
-		
-		if(log.isDebugEnabled()) {
-			log.debug "verifySMSCode to " + code
-		}
+            CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+            URL u = new URL("https://getprove.com/api/v1/verify/" + requestKey + "/pin");
+            HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
+            http.setConnectTimeout(10000);
+            http.setInstanceFollowRedirects(false);
+            Authenticator.setDefault(new MyAuthenticator());
+            http.setAllowUserInteraction(true);
+            http.setRequestMethod("POST");
+            http.setDoOutput(true);
+            final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
+            wr.writeBytes("pin=" + code);
+            wr.flush();
+            wr.close();
 
-		if(grailsApplication.config.com.dropbyke.smsService == "ringcaptcha") {
-			return this.verifySMSRingcaptcha(phone, code, verificationId)
-		}
-		else if(grailsApplication.config.com.dropbyke.smsService == "getprove") {
-			return this.verifySMSGetprove(phone, code, verificationId)
-		}
-		else {
-			throw new Exception("No sms service defined")
-		}
-	}
+            if (log.isDebugEnabled()) {
+                log.debug "verifySMSCode response code " + http.getResponseCode();
+            }
+
+            http.connect();
+            InputStream is = http.getInputStream();
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(is));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line + "\n");
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug "verifySMSCode received: " + stringBuilder.toString()
+            }
+
+            JSONObject json = new JSONObject(stringBuilder.toString());
+
+            if (!json || !json.has("verified")) {
+                throw new Exception("Failed to get response from sms service")
+            }
+
+            if (json.getBoolean("verified")) {
+                return true
+            }
+
+            return false
+        }
+        catch (JSONException e) {
+            log.error "SendSMS JSONException:" + e.message
+            throw new Exception("Failed to parse response from sms service")
+        }
+        catch (IOException e) {
+            log.error "SendSMS IOException:" + e.message
+            throw new Exception("Failed to send response to sms service")
+        }
+    }
+
+    String sendSMS(phone) throws Exception {
+
+        if (grailsApplication.config.com.dropbyke.debug) {
+            return "123"
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug "sendSMS to " + phone + " with " + grailsApplication.config.com.dropbyke.smsService
+        }
+
+        if (grailsApplication.config.com.dropbyke.smsService == "ringcaptcha") {
+            return this.sendSMSRingcaptcha(phone)
+        } else if (grailsApplication.config.com.dropbyke.smsService == "getprove") {
+            return this.sendSMSGetprove(phone)
+        } else {
+            throw new Exception("No sms service defined")
+        }
+    }
+
+    boolean verifySMSCode(String phone, String code, String verificationId) throws Exception {
+
+        if (grailsApplication.config.com.dropbyke.debug) {
+            return true
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug "verifySMSCode to " + code
+        }
+
+        if (grailsApplication.config.com.dropbyke.smsService == "ringcaptcha") {
+            return this.verifySMSRingcaptcha(phone, code, verificationId)
+        } else if (grailsApplication.config.com.dropbyke.smsService == "getprove") {
+            return this.verifySMSGetprove(phone, code, verificationId)
+        } else {
+            throw new Exception("No sms service defined")
+        }
+    }
 }

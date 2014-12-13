@@ -43,7 +43,6 @@ class UserService {
 
 		def ride = null
 		def bike = null
-		def rideImageExists = false
 
 		if(rides) {
 			ride = rides.get(0)
