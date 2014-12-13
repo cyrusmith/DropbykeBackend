@@ -1,18 +1,13 @@
 package com.dropbyke
 
 import com.dropbyke.command.FacebookPhotoDownloadCommand
-import grails.plugin.jms.Queue
-import org.springframework.transaction.annotation.Isolation
-
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-
-import javax.imageio.ImageIO;
-
-import org.codehaus.groovy.grails.web.context.ServletContextHolder;
-import org.codehaus.groovy.grails.web.json.JSONObject;
-
 import grails.transaction.Transactional
+import org.codehaus.groovy.grails.web.context.ServletContextHolder
+import org.codehaus.groovy.grails.web.json.JSONObject
+
+import javax.imageio.ImageIO
+import java.awt.*
+import java.awt.image.BufferedImage
 
 class FacebookService {
 
@@ -22,7 +17,6 @@ class FacebookService {
 
     static exposes = ['jms']
 
-    @Queue
     def downloadProfilePhoto(FacebookPhotoDownloadCommand cmd) {
 
         log.debug "Start downloadProfilePhoto"

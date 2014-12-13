@@ -55,7 +55,14 @@ class UsersController {
             }
 
             if (!fileUploadService.checkPhotoExists(Folder.USERS, user.id)) {
-                jmsService.send(service: 'facebook', method: 'downloadProfilePhoto', new FacebookPhotoDownloadCommand(userId: user.id, token: cmd.token))
+                try {
+                    facebookService.downloadProfilePhoto(new FacebookPhotoDownloadCommand(userId: user.id, token: cmd.token))
+                }
+                catch (e) {
+
+                }
+
+                //jmsService.send(service: 'facebook', method: 'downloadProfilePhoto', new FacebookPhotoDownloadCommand(userId: user.id, token: cmd.token))
             }
 
             try {
