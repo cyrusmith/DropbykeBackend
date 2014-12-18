@@ -77,7 +77,7 @@ class BikesController {
             return render(status: 404, contentType: "application/json") { ["error": "ID not set"] }
         }
 
-        def id = params.id.toLong()
+        Long id = params.id.toLong()
 
         Bike bike = Bike.get(id)
 
@@ -107,21 +107,58 @@ class BikesController {
     }
 
     @Secured(['ROLE_USER'])
+    def isValidDistance() {
+
+        long bikeId = params.getLong('bikeId', 0L)
+        double lat = params.getDouble('lat', 0.0)
+        double lng = params.getDouble('lng', 0.0)
+
+        Bike bike = Bike.get(bikeId)
+
+        if (!bike) {
+            return render(contentType: "application/json", code: 400) {
+                [error: "Bike not found"]
+            }
+        }
+
+        if (bike.locked) {
+            return render(contentType: "application/json", code: 400) {
+                [error: "Could not get bike location. Bike is in use"]
+            }
+        }
+
+        return render(contentType: "application/json", code: 200) {
+            ["isValidDistance": bikesService.isCloseRule(dist(bike.lat, bike.lng, lat, lng))]
+        }
+
+    }
+
+    @Secured(['ROLE_USER'])
     @Transactional
     def startUsage() {
         def authenticatedUser = springSecurityService.loadCurrentUser()
 
         JSONObject data = request.JSON
 
-        def bikeId = data.has("bikeId") ? data.getLong("bikeId") : 0
+        long bikeId = data.getLong("bikeId")
         if (!bikeId) {
             return render(status: 404, contentType: "application/json") { ["error": "Id not set"] }
         }
+
+        double userLat = data.getDouble("userLat")
+        double userLng = data.getDouble("userLng")
 
         Bike bike = Bike.get(bikeId)
 
         if (!bike) {
             return render(status: 404, contentType: "application/json") { ["error": "Bike not found"] }
+        }
+
+
+        if (!bikesService.isCloseRule(dist(bike.lat, bike.lng, userLat, userLng))) {
+            return render(status: 400, contentType: "application/json") {
+                ["error": "Cannot access bike. You are too far."]
+            }
         }
 
         try {
