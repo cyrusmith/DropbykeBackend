@@ -13,6 +13,8 @@
 			class="glyphicon glyphicon-chevron-left"></span></a> Stop ride
 	</h2>
 
+	<p>No charge will be made</p>
+
 	<g:set var="actionLink">
 		<g:createLink action="${actionName}" id="${bike.id}" />
 	</g:set>
@@ -39,14 +41,14 @@
 		<div class="form-group">
 			<label for="stopTime">Start timestamp</label>
 			<p>
-				${ride.startTime}
+				${(int)Math.ceil(ride.startTime/1000)} (<g:formatDate format="yyyy-MM-dd" date="${ride.startTime}"/>)
 			</p>
 		</div>
 
 		<div class="form-group">
 			<label for="stopTime">Stop timestamp</label>
 			<g:textField class="form-control datetimepicker" name="stopTime"
-				id="stopTime" value="${ride.stopTime}" />
+				id="stopTime" value="${(int)Math.ceil(currentTime/1000)}" />
 		</div>
 
 
@@ -54,20 +56,20 @@
 			<fieldset>
 				<legend>Start position</legend>
 				<div class="form-group">
-					<label for="startAddress">Start address</label>
+					<label>Start address</label>
 					<p>
 						${ride.startAddress}
 					</p>
 				</div>
 				<div class="row location-selector">
 					<div class="col-xs-3">
-						<label for="startLat">Start latitude</label>
+						<label>Start latitude</label>
 						<p>
 							${ride.startLat}
 						</p>
 					</div>
 					<div class="col-xs-3">
-						<label for="startLng">Start longitude</label>
+						<label>Start longitude</label>
 						<p>
 							${ride.startLng}
 						</p>
@@ -102,7 +104,7 @@
 					</div>
 
 					<div class="col-xs-2">
-						<label for="">&nbsp;</label><br> <a
+						<label>&nbsp;</label><br> <a
 							class="btn btn-primary select-onmap" data-toggle="modal"
 							data-target="#mapModalStop"><span
 							class="glyphicon glyphicon-map-marker"></span></a>
@@ -151,6 +153,11 @@
 			<label for="photo">Photo</label> <input type="file" name="photo"
 				id="photo" />
 			<p>Should be &lt; 100kB</p>
+		</div>
+
+		<div class="form-group">
+			<label for="photo">Use previous photo</label>
+			<g:checkBox name="usesamephoto" value="1"/>
 		</div>
 
 		<div class="form-group">

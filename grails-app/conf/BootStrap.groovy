@@ -70,7 +70,8 @@ class BootStrap {
 				lastRideId: bike.lastRideId,
 				lastUserPhone: bike.lastUserPhone,
 				active: bike.active,
-				locked: bike.locked
+				locked: bike.locked,
+				user: ["id": bike.user.id]
 			]
 		})
 

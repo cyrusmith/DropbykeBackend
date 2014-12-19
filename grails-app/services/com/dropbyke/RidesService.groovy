@@ -8,172 +8,167 @@ import grails.validation.ValidationException;
 @Transactional
 class RidesService {
 
-	def grailsApplication
-	def cardService
-	def fileUploadService
+    def grailsApplication
+    def cardService
+    def fileUploadService
 
-	def stopRide(long userId, double lat, double lng, String address, String message = "", int distance = 0) {
+    def stopRide(long userId, double lat, double lng, String address, String message = "", int distance = 0) {
 
-		boolean isDebug = grailsApplication.config.com.dropbyke.debug
+        boolean isDebug = grailsApplication.config.com.dropbyke.debug
 
-		if(Math.abs(lat) < 0.00001 || Math.abs(lng) < 0.00001) {
-			throw new Exception("Location not set")
-		}
+        if (!address) {
+            throw new Exception("Address not set")
+        }
 
-		if(!address) {
-			throw new Exception("Address not set")
-		}
+        User user = User.get(userId)
 
-		User user = User.get(userId)
+        if (!user) {
+            throw new Exception("User not found")
+        }
 
-		if(!user) {
-			throw new Exception("User not found")
-		}
+        def rc = Ride.createCriteria()
 
-		def rc = Ride.createCriteria()
+        def rides = rc.list {
+            eq('user', user)
+            eq('stopTime', 0L)
+        }
 
-		def rides = rc.list {
-			eq('user', user)
-			eq('stopTime', 0L)
-		}
+        if (!rides) {
+            throw new Exception("No ride found")
+        }
 
-		if(!rides) {
-			throw new Exception("No ride found")
-		}
+        Ride ride = rides.get(0)
 
-		Ride ride = rides.get(0)
+        Bike bike = Bike.get(ride.bike.id)
 
-		Bike bike = Bike.get(ride.bike.id)
+        if (!fileUploadService.checkPhotoExists(Folder.RIDES, ride.id)) {
+            if (!isDebug) {
+                throw new Exception("Illegal state: ride have no photo")
+            }
+        }
 
-		if(!fileUploadService.checkPhotoExists(Folder.RIDES, ride.id)) {
-			if(!isDebug) {
-				throw new Exception("Illegal state: ride have no photo")
-			}
-		}
+        ride.stopTime = System.currentTimeMillis()
+        ride.stopLat = lat
+        ride.stopLng = lng
+        ride.stopAddress = address
+        ride.message = message
+        ride.distance = distance * 1000
 
-		ride.stopTime = System.currentTimeMillis()
-		ride.stopLat = lat
-		ride.stopLng = lng
-		ride.stopAddress = address
-		ride.message = message
-		ride.distance = distance*1000
+        int hours = Math.floor((ride.stopTime - ride.startTime) / 3600000)
+        ride.sum = hours * bike.priceRate * 100
 
-		int hours = Math.ceil((ride.stopTime - ride.startTime)/3600000)
-		ride.sum = hours * bike.priceRate * 100
+        if (ride.save()) {
 
-		if(ride.save()) {
+            bike.lat = lat
+            bike.lng = lng
+            bike.address = address
+            bike.messageFromLastUser = message ? message : ""
+            bike.locked = false
+            bike.lastRideId = ride.id
+            bike.lastUserPhone = user.phone
 
-			bike.lat = lat
-			bike.lng = lng
-			bike.address = address
-			bike.messageFromLastUser = message ? message  : ""
-			bike.locked = false
-			bike.lastRideId = ride.id
-			bike.lastUserPhone = user.phone
+            if (bike.save()) {
+                return [
+                        'bike': bike,
+                        'ride': ride
+                ]
+            } else {
+                throw new Exception("Could not save bike")
+            }
+        } else {
+            throw new Exception("Could not save ride")
+        }
+    }
 
-			if(bike.save()) {
-				return [
-					'bike': bike,
-					'ride': ride
-				]
-			}
-			else {
-				throw new Exception("Could not save bike")
-			}
-		}
-		else {
-			throw new Exception("Could not save ride")
-		}
-	}
+    def getUserCurrentRide(long userId) {
 
-	def getUserCurrentRide(long userId) {
+        User user = User.get(userId)
 
-		User user = User.get(userId)
+        if (!user) {
+            return null
+        }
 
-		if(!user) {
-			return null
-		}
+        def rc = Ride.createCriteria()
+        def rideAlreadyInProgress = rc.list {
+            eq('user', user)
+            eq('stopTime', 0L)
+        }
 
-		def rc = Ride.createCriteria()
-		def rideAlreadyInProgress = rc.list {
-			eq('user', user)
-			eq('stopTime', 0L)
-		}
+        if (!rideAlreadyInProgress) {
+            return null
+        }
 
-		if(!rideAlreadyInProgress) {
-			return null
-		}
+        return rideAlreadyInProgress.get(0)
+    }
 
-		return rideAlreadyInProgress.get(0)
-	}
+    def checkout(long rideId, long userId, int rating) {
 
-	def checkout(long rideId, long userId, int rating) {
+        Ride ride = Ride.get(rideId);
+        User user = User.get(userId);
 
-		Ride ride = Ride.get(rideId);
-		User user = User.get(userId);
+        if (!ride) {
+            throw new ValidationException("Ride not found")
+        }
 
-		if(!ride) {
-			throw new ValidationException("Ride not found")
-		}
+        if (ride.complete) {
+            throw new IllegalStateException("Ride already complete")
+        }
 
-		if(ride.complete) {
-			throw new IllegalStateException("Ride already complete")
-		}
+        if (!ride.stopTime) {
+            throw new IllegalStateException("Ride not finished")
+        }
 
-		if(!ride.stopTime) {
-			throw new IllegalStateException("Ride not finished")
-		}
+        if (ride.stopTime - ride.startTime < 0) {
+            throw new IllegalStateException("Invalid time period")
+        }
 
-		if(ride.stopTime - ride.startTime  < 0) {
-			throw new IllegalStateException("Invalid time period")
-		}
+        Bike bike = Bike.get(ride.bike.id)
 
-		if(ride.sum  < 50) {
-			throw new IllegalStateException("Sum it too low: " + ride.sum)
-		}
+        if (!user) {
+            throw new ValidationException("User not found")
+        }
 
-		Bike bike = Bike.get(ride.bike.id)
+        if (rating < 0 || rating > 5) {
+            throw new ValidationException("Rating has invalid value")
+        }
 
-		if(!user) {
-			throw new ValidationException("User not found")
-		}
+        BikeRating existingBikeRating = BikeRating.findByUserAndRide(user, ride)
 
-		if(rating < 0 || rating > 5) {
-			throw new ValidationException("Rating has invalid value")
-		}
+        if (existingBikeRating) {
+            throw new ValidationException("Rating already complete")
+        }
 
-		BikeRating existingBikeRating = BikeRating.findByUserAndRide(user, ride)
+        BikeRating rideRating = new BikeRating(user: user, ride: ride, bike: bike, rating: rating)
+        if (!rideRating.save()) {
+            throw new Exception("Could not save rating")
+        }
 
-		if(existingBikeRating) {
-			throw new ValidationException("Rating already complete")
-		}
+        def rrc = BikeRating.createCriteria()
+        def bikeRatingsSum = rrc.list {
+            eq('bike', bike)
+            projections { sum "rating" }
+        }
 
-		BikeRating rideRating = new BikeRating(user:user, ride:ride, bike:bike, rating:rating)
-		if(!rideRating.save()) {
-			throw new Exception("Could not save rating")
-		}
+        def bikeRatingsCount = BikeRating.countByBike(bike)
+        bikeRatingsSum = bikeRatingsSum.get(0)
 
-		def rrc = BikeRating.createCriteria()
-		def bikeRatingsSum = rrc.list {
-			eq('bike', bike)
-			projections { sum "rating" }
-		}
+        double sum = rating
+        double count = 1
 
-		def bikeRatingsCount = BikeRating.countByBike(bike)
-		bikeRatingsSum = bikeRatingsSum.get(0)
+        sum = sum + bikeRatingsSum
+        count = count + bikeRatingsCount
 
-		double sum = rating
-		double count = 1
+        bike.rating = sum / count
+        bike.save()
 
-		sum = sum + bikeRatingsSum
-		count = count + bikeRatingsCount
+        ride.complete = true
+        ride.save()
 
-		bike.rating = sum / count
-		bike.save()
+        if (ride.sum >= 50) {
+            cardService.checkout(userId, rideId, ride.sum)
+        } else {
+            log.debug "Do not checkout, sum is " + ride.sum
+        }
 
-		ride.complete = true
-		ride.save()
-
-		cardService.checkout(userId, rideId, ride.sum)
-	}
+    }
 }

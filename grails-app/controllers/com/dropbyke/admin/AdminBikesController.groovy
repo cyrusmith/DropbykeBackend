@@ -1,5 +1,7 @@
 package com.dropbyke.admin
 
+import org.codehaus.groovy.grails.web.context.ServletContextHolder
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -27,10 +29,9 @@ class AdminBikesController {
         if (params.userId) {
             session["userId"] = params.userId
             bikes = Bike.findAllByUser(User.load(params.userId), params)
-        } else if(params.containsKey("sort") && session["userId"]) {
+        } else if (params.containsKey("sort") && session["userId"]) {
             bikes = Bike.findAllByUser(User.load(session["userId"]), params)
-        }
-        else {
+        } else {
             session["userId"] = null
             bikes = Bike.list(params)
         }
@@ -229,9 +230,10 @@ class AdminBikesController {
 
         if (request.get) {
             return render(view: 'stopUsage', model: [
-                    ride: ride,
-                    bike: bike,
-                    user: user
+                    ride       : ride,
+                    bike       : bike,
+                    user       : user,
+                    currentTime: System.currentTimeMillis()
             ])
         }
 
@@ -253,16 +255,60 @@ class AdminBikesController {
             errors.add "Message not set"
         }
 
-        def photo = request.getFile('photo')
-        if (photo && !photo.isEmpty()) {
-            try {
-                fileUploadService.savePhoto(photo, Folder.RIDES, ride.id)
+        if (!params.usesamephoto) {
+            def photo = request.getFile('photo')
+            if (photo && !photo.isEmpty()) {
+                try {
+                    fileUploadService.savePhoto(photo, Folder.RIDES, ride.id)
+                }
+                catch (e) {
+                    errors.add "Could not save photo" + e.message
+                }
+            } else {
+                errors.add "Photo not set"
             }
-            catch (e) {
-                errors.add "Could not save photo" + e.message
-            }
+
         } else {
-            errors.add "Photo not set"
+            def servletContext = ServletContextHolder.servletContext
+            File fromFile = new File(servletContext.getRealPath("/images/rides/" + bike.lastRideId + '.jpg'));
+            File toFile = new File(servletContext.getRealPath("/images/rides/" + ride.id + '.jpg'));
+
+            if (!fromFile.exists()) {
+                errors.add "Previous photo does not exist"
+            } else {
+
+                FileInputStream fis = null;
+                FileOutputStream fos = null;
+                try {
+
+                    fis = new FileInputStream(fromFile);
+                    fos = new FileOutputStream(toFile);
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytesRead);
+                    }
+
+                } catch (Exception e) {
+                    errors.add "Could not save file " + e.message
+                } finally {
+                    if (fis != null) {
+                        try {
+                            fis.close();
+                        } catch (IOException e) {
+                            System.out.println(e);
+                        }
+                    }
+                    if (fos != null) {
+                        try {
+                            fos.close();
+                        } catch (IOException e) {
+                            System.out.println(e);
+                        }
+                    }
+                }
+            }
         }
 
         String stopAddress = params.stopAddress
@@ -288,7 +334,7 @@ class AdminBikesController {
         if (errors.size() > 0) {
             flash.error = errors.join(", ")
             return render(view: 'stopUsage', model: [
-                    ride: [
+                    ride       : [
                             id          : ride.id,
                             startTime   : ride.startTime,
                             startAddress: ride.startAddress,
@@ -299,12 +345,13 @@ class AdminBikesController {
                             stopLat     : params.stopLat,
                             stopLng     : params.stopLng
                     ],
-                    bike: [
+                    bike       : [
                             id                 : bike.id,
                             title              : bike.title,
                             messageFromLastUser: params.message
                     ],
-                    user: user
+                    user       : user,
+                    currentTime: System.currentTimeMillis()
             ])
         }
 
@@ -324,7 +371,7 @@ class AdminBikesController {
         bike.lastRideId = ride.id
 
         if (ride.save() && bike.save()) {
-            return redirect(action: "edit", id: bike.id)
+            return redirect(action: "index")
         }
     }
 }

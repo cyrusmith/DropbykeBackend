@@ -34,11 +34,12 @@ class BikesController {
         List bikes
         BuildableCriteria bc = Bike.createCriteria()
 
+        //ne('user', authUser)
+
         if ((Math.abs(lng1 - lng2) > 0.0000001) && Math.abs(lat1 - lat2) > 0.0000001) {
 
             bikes = bc.list {
                 maxResults(20)
-                ne('user', authUser)
                 gt('lat', lat1)
                 lt('lat', lat2)
                 gt('lng', lng1)
@@ -64,7 +65,7 @@ class BikesController {
         }
 
         render(status: 200, contentType: "application/json") {
-            ["bikes": bikes, "nearest": minDist, "location": [userLat, userLng]]
+            ["bikes": bikes, "nearest": minDist, "location": [userLat, userLng], "user": ["id": authUser.id]]
         }
 
     }
@@ -72,7 +73,7 @@ class BikesController {
     @Secured(['ROLE_USER'])
     @Transactional
     def view() {
-
+        User authUser = springSecurityService.loadCurrentUser()
         if (!params.id) {
             return render(status: 404, contentType: "application/json") { ["error": "ID not set"] }
         }
@@ -102,7 +103,7 @@ class BikesController {
         }
 
         return render(status: 200, contentType: "application/json") {
-            ["bike": bike, "ride": ride]
+            ["bike": bike, "ride": ride, "user": ["id": authUser.id]]
         }
     }
 
@@ -154,6 +155,9 @@ class BikesController {
             return render(status: 404, contentType: "application/json") { ["error": "Bike not found"] }
         }
 
+        if (bike.user.id == authenticatedUser.id) {
+            return render(status: 404, contentType: "application/json") { ["error": "Cannot use bike added by you"] }
+        }
 
         if (!bikesService.isCloseRule(dist(bike.lat, bike.lng, userLat, userLng))) {
             return render(status: 400, contentType: "application/json") {
