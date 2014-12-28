@@ -26,18 +26,23 @@ class RidesService {
             throw new Exception("User not found")
         }
 
-        def rc = Ride.createCriteria()
-
-        def rides = rc.list {
+        def ridesInProgress = Ride.createCriteria().list {
             eq('user', user)
             eq('stopTime', 0L)
         }
 
-        if (!rides) {
+        if (!ridesInProgress) {
             throw new Exception("No ride found")
         }
 
-        Ride ride = rides.get(0)
+        List ridesComplete = Ride.createCriteria().list {
+            eq('user', user)
+            gt('stopTime', 0L)
+        }
+
+        boolean hasCompleteRides = ridesComplete && !ridesComplete.isEmpty()
+
+        Ride ride = ridesInProgress.get(0)
 
         Bike bike = Bike.get(ride.bike.id)
 
@@ -54,7 +59,9 @@ class RidesService {
         ride.message = message
         ride.distance = distance * 1000
 
-        int hours = Math.floor((ride.stopTime - ride.startTime) / 3600000)
+        double hoursDouble         = (ride.stopTime - ride.startTime) / 3600000
+
+        int hours = hasCompleteRides ? Math.ceil(hoursDouble) : Math.floor(hoursDouble)
         ride.sum = hours * bike.priceRate * 100
 
         if (ride.save()) {
