@@ -103,7 +103,7 @@ class BikesController {
         }
 
         return render(status: 200, contentType: "application/json") {
-            ["bike": bike, "ride": ride, "user": ["id": authUser.id]]
+            ["bike": bike, "ride": ride, "user": ["id": authUser.id, "cards": authUser.cards]]
         }
     }
 
@@ -137,13 +137,19 @@ class BikesController {
     @Secured(['ROLE_USER'])
     @Transactional
     def startUsage() {
-        def authenticatedUser = springSecurityService.loadCurrentUser()
+        User authenticatedUser = springSecurityService.loadCurrentUser()
 
         JSONObject data = request.JSON
 
         long bikeId = data.getLong("bikeId")
         if (!bikeId) {
             return render(status: 404, contentType: "application/json") { ["error": "Id not set"] }
+        }
+
+        if(!authenticatedUser.cards.size()) {
+            return render(status: 400, contentType: "application/json") {
+                ["error": "Cannot access bike. You have no payment cards."]
+            }
         }
 
         double userLat = data.getDouble("userLat")
