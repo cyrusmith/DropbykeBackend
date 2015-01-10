@@ -282,8 +282,6 @@ class UsersController {
     def uploadPhoto() {
         def authenticatedUser = springSecurityService.loadCurrentUser()
         def photo = request.getFile('photo')
-        System.out.println "uploadPhoto"
-        System.out.println photo
         if (photo && !photo.isEmpty()) {
             try {
                 fileUploadService.savePhoto(photo, Folder.USERS, authenticatedUser.id)
@@ -298,4 +296,24 @@ class UsersController {
         }
         return render(status: 400, contentType: "application/json") { ["error": "No file"] }
     }
+
+    @Secured(['permitAll'])
+    def validatePhoneNumber() {
+        String phone = params.containsKey('phone') ? params['phone'] : ''
+
+        if (!phone) {
+            return render(status: 400, contentType: "application/json") { ["error": "No phone number"] }
+        }
+
+        try {
+            if (phoneService.validatePhoneNumber(phone)) {
+                return render(status: 200, contentType: "application/json") {}
+            }
+        }
+        catch (Exception e) {
+            return render(status: 400, contentType: "application/json") { ["error": e.getMessage()] }
+        }
+
+    }
+
 }

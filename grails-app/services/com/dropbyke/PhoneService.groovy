@@ -299,4 +299,84 @@ class PhoneService {
             throw new Exception("No sms service defined")
         }
     }
+
+    boolean validatePhoneNumber(String phone) throws Exception {
+
+        if (grailsApplication.config.com.dropbyke.debug) {
+            return true
+        }
+
+        if (grailsApplication.config.com.dropbyke.smsService == "ringcaptcha") {
+
+            try {
+                def apiKey = grailsApplication.config.com.dropbyke.ringcaptcha.apiKey
+                def appKey = grailsApplication.config.com.dropbyke.ringcaptcha.appKey
+                CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+                URL u = new URL("https://api.ringcaptcha.com/${appKey}/normalize");
+                HttpsURLConnection http = (HttpsURLConnection) u.openConnection();
+                http.setConnectTimeout(10000);
+                http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                http.setInstanceFollowRedirects(false);
+                http.setRequestMethod("POST");
+                http.setDoOutput(true);
+                final DataOutputStream wr = new DataOutputStream(http.getOutputStream());
+                wr.writeBytes("secret_key=${apiKey}&phone=${phone}");
+                wr.flush();
+                wr.close();
+
+                log.debug "normalize response code " + http.getResponseCode();
+
+                http.connect();
+                InputStream is = http.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    stringBuilder.append(line + "\n");
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug "received: " + stringBuilder.toString()
+                }
+
+                JSONObject json = new JSONObject(stringBuilder.toString());
+
+                if (!json || !json.has("status")) {
+                    throw new Exception("Failed to get response from phone service. Please try again later.")
+                }
+
+                if (json.getString("status") == "ERROR") {
+
+                    def msg = "Phone number validation failure"
+
+                    if ((json.getString("message") == "ERROR_INVALID_NUMBER") || (json.getString("message") == "ERROR_INVALID_NUMBER_LENGTH")) {
+                        msg = "Phone number is incorrect. Retry with a valid number."
+                    } else if (json.getString("message") == "ERROR_COUNTRY_NOT_SUPPORTED") {
+                        msg = "Country code is not supported"
+                    }
+
+                    throw new Exception(msg)
+
+                }
+
+                return true
+
+            }
+            catch (JSONException e) {
+                log.error "Send SMS JSONException: " + e.message
+                throw new Exception("Error in response. Please try again.")
+            }
+            catch (IOException e) {
+                log.error "Send SMS IOException: " + e.message
+                throw new Exception("Error during validation request. Please try again later.")
+            }
+
+        } else if (grailsApplication.config.com.dropbyke.smsService == "getprove") {
+            return true
+        } else {
+            throw new Exception("No sms service defined")
+        }
+
+    }
+
 }
